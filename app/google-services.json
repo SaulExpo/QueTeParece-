@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "991357525907",
+    "project_id": "queteparece-8ca56",
+    "storage_bucket": "queteparece-8ca56.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:991357525907:android:f613cddc5fe93cc42b5266",
+        "android_client_info": {
+          "package_name": "com.exmosaul.queteparece"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBExu2o6je1S0mX4xRQ7htgr-VuoeqJan8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
