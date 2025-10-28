@@ -305,7 +305,10 @@ fun SearchScreen(navController: NavController, viewModel: SearchViewModel = andr
                                     modifier = Modifier
                                         .width(120.dp)
                                         .height(160.dp)
-                                        .clip(RoundedCornerShape(12.dp)),
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .clickable {
+                                            navController.navigate("movieDetail/${movie.id}")
+                                        },
                                     contentScale = ContentScale.Crop
                                 )
                             }

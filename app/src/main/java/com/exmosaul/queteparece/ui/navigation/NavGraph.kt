@@ -25,6 +25,10 @@ import com.exmosaul.queteparece.ui.screens.auth.AuthScreen
 import com.exmosaul.queteparece.ui.screens.auth.HomeScreen
 import com.exmosaul.queteparece.ui.screens.search.SearchScreen
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.graphics.BlendMode.Companion.Screen
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
+import com.exmosaul.queteparece.ui.screens.detail.MovieDetailScreen
 import com.exmosaul.queteparece.ui.screens.profile.ProfileScreen
 import com.google.firebase.auth.FirebaseAuth
 
@@ -35,6 +39,7 @@ sealed class Routes(val route: String) {
     data object Search: Routes("search")
     data object Favorites: Routes("favorites")
     data object Profile: Routes("profile")
+    data object MovieDetail: Routes("movieDetail/{movieId}")
 }
 
 
@@ -67,6 +72,13 @@ fun AppNavHost(navController: NavHostController) {
         composable(Routes.Profile.route) {
             ProfileScreen(navController)
         }
+        composable(
+            route = "movieDetail/{movieId}",
+            arguments = listOf(navArgument("movieId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val movieId = backStackEntry.arguments?.getString("movieId") ?: ""
+            MovieDetailScreen(movieId = movieId, navController = navController)
+        }
     }
 }
 
@@ -79,16 +91,34 @@ fun BottomNavBar(navController: NavController) {
         BottomNavItem("Perfil", Icons.Filled.Person, Routes.Profile.route)
     )
 
-    NavigationBar(containerColor = MaterialTheme.colorScheme.primary) {
-        val navBackStackEntry by navController.currentBackStackEntryAsState()
-        val currentRoute = navBackStackEntry?.destination?.route
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route.orEmpty()
 
+    NavigationBar(containerColor = MaterialTheme.colorScheme.primary) {
         items.forEach { item ->
+            val isHome = item.route == Routes.Home.route
+            val selected = if (isHome) {
+                // Considera el detalle como parte de Home para el estado seleccionado
+                currentRoute == Routes.Home.route || currentRoute.startsWith("movieDetail/")
+            } else {
+                currentRoute == item.route
+            }
+
             NavigationBarItem(
-                selected = currentRoute == item.route,
+                selected = selected,
                 onClick = {
-                    if (currentRoute != item.route) {
+                    if (isHome) {
+                        // 🔥 Siempre volver a la Home raíz (no restaurar detalle)
+                        navController.navigate(Routes.Home.route) {
+                            // Elimina cualquier cosa por encima y la propia Home, luego navega de nuevo a Home
+                            popUpTo(Routes.Home.route) { inclusive = true }
+                            launchSingleTop = true
+                            // ¡OJO! No usamos restoreState aquí para no volver a abrir el último detalle
+                        }
+                    } else {
+                        // Pestañas normales: conserva estado
                         navController.navigate(item.route) {
+                            // Mantén el back stack limpio desde Home
                             popUpTo(Routes.Home.route) { saveState = true }
                             launchSingleTop = true
                             restoreState = true
@@ -112,6 +142,7 @@ fun BottomNavBar(navController: NavController) {
         }
     }
 }
+
 
 data class BottomNavItem(
     val label: String,

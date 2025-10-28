@@ -86,14 +86,18 @@ class SearchViewModel : ViewModel() {
                 val snapshot = db.collection("movies").limit(100).get().await()
 
                 val movies = snapshot.documents.mapNotNull { doc ->
+                    val id = doc.id
                     val title = doc.getString("title") ?: return@mapNotNull null
+                    val description = doc.getString("description") ?: ""
                     val imageUrl = doc.getString("imageUrl") ?: ""
                     val category = doc.getString("category") ?: ""
                     val featured = doc.getBoolean("isFeatured") == true
                     val genres = (doc.get("genres") as? List<*>)?.filterIsInstance<String>() ?: emptyList()
                     val type = doc.getString("type") ?: ""
+                    val cast = (doc.get("cast") as? List<*>)?.filterIsInstance<String>() ?: emptyList()
 
-                    Movie(title, imageUrl, category, featured, genres, type)
+
+                    Movie(id, title, description, imageUrl, category, featured, genres, type, cast)
                 }.filter { movie ->
                     // 🔎 2️⃣ Aplicar todos los filtros combinados (modo AND)
                     val matchesQuery = s.query.isBlank() || movie.title.contains(s.query, ignoreCase = true)

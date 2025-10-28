@@ -2,6 +2,7 @@ package com.exmosaul.queteparece.ui.screens.auth
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -55,18 +56,18 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = viewMode
                     .background(MaterialTheme.colorScheme.background),
                 contentPadding = PaddingValues(bottom = 80.dp)
             ) {
-                item { FeaturedMovieSection(movie = uiState.featuredMovie) }
-                item { Section(title = "Novedades destacadas", movies = uiState.novedades) }
-                item { Section(title = "En tendencias", movies = uiState.tendencias) }
-                item { Section(title = "Películas Animadas", movies = uiState.animacion) }
-                item { Section(title = "Películas 'live action'", movies = uiState.liveAction) }
+                item { FeaturedMovieSection(movie = uiState.featuredMovie, navController) }
+                item { Section(title = "Novedades destacadas", movies = uiState.novedades, navController) }
+                item { Section(title = "En tendencias", movies = uiState.tendencias, navController) }
+                item { Section(title = "Películas Animadas", movies = uiState.animacion, navController) }
+                item { Section(title = "Películas 'live action'", movies = uiState.liveAction, navController) }
             }
         }
     }
 }
 
 @Composable
-fun FeaturedMovieSection(movie: Movie?) {
+fun FeaturedMovieSection(movie: Movie?, navController: NavController) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -113,7 +114,9 @@ fun FeaturedMovieSection(movie: Movie?) {
 
         // Botón de detalles centrado en la parte baja de la imagen
         Button(
-            onClick = { /* TODO: abrir detalles */ },
+            onClick = { movie?.id?.let { id ->
+                navController.navigate("movieDetail/$id")
+            }},
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(bottom = 20.dp),
@@ -130,7 +133,7 @@ fun FeaturedMovieSection(movie: Movie?) {
 
 
 @Composable
-fun Section(title: String, movies: List<Movie>) {
+fun Section(title: String, movies: List<Movie>, navController: NavController) {
     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -151,7 +154,11 @@ fun Section(title: String, movies: List<Movie>) {
                     modifier = Modifier
                         .width(120.dp)
                         .height(160.dp)
-                        .clip(RoundedCornerShape(12.dp)),
+                        .clip(RoundedCornerShape(12.dp))
+                        .clickable {
+                            println("➡️ Navegando a detalle de ${movie.title} con ID ${movie.id}")
+                            navController.navigate("movieDetail/${movie.id}")
+                        },
                     contentScale = ContentScale.Crop
                 )
             }
