@@ -36,7 +36,7 @@ fun AuthScreen(
     // Detecta autenticación exitosa
     LaunchedEffect(uiState.user) {
         if (uiState.user != null) {
-            println("✅ Usuario autenticado: " + uiState.user)
+            println("Usuario autenticado: " + uiState.user)
             onAuthenticated()
         }
     }
