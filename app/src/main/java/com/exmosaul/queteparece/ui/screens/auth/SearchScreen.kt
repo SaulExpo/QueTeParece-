@@ -30,6 +30,7 @@ import com.exmosaul.queteparece.R
 import com.exmosaul.queteparece.data.model.Movie
 import com.exmosaul.queteparece.ui.navigation.BottomNavBar
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun SearchScreen(navController: NavController, viewModel: SearchViewModel = androidx.lifecycle.viewmodel.compose.viewModel()) {
     val uiState by viewModel.uiState.collectAsState()
