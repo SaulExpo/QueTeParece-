@@ -6,13 +6,6 @@ plugins {
     id("org.sonarqube") version "6.3.1.5724"
 }
 
-sonar {
-    properties {
-        property("sonar.projectKey", "QueTeParece-")
-        property("sonar.projectName", "QueTeParece!")
-    }
-}
-
 android {
     namespace = "com.exmosaul.queteparece"
     compileSdk = 36
