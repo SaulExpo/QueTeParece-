@@ -39,5 +39,5 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: ./gradlew build sonarqube --info \
           -Dsonar.projectKey=SaulExpo_QueTeParece- \
-          -Dsonar.organization=Saul \
+          -Dsonar.organization=saulexpo \
           -Dsonar.host.url=https://sonarcloud.io
