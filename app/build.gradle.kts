@@ -3,7 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     id("com.google.gms.google-services")
-    id("org.sonarqube") version "6.3.1.5724"
+    id("org.sonarqube") version "4.4.1.3373"
 }
 
 android {
