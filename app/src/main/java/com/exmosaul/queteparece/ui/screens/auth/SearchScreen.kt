@@ -27,7 +27,6 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.exmosaul.queteparece.R
-import com.exmosaul.queteparece.data.model.Movie
 import com.exmosaul.queteparece.ui.navigation.BottomNavBar
 
 @OptIn(ExperimentalLayoutApi::class)

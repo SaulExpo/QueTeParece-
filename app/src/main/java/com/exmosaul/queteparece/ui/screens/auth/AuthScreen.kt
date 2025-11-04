@@ -16,10 +16,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.text.style.TextDirection
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.res.painterResource
 import com.exmosaul.queteparece.R
