@@ -29,6 +29,7 @@ import coil.request.ImageRequest
 import com.exmosaul.queteparece.R
 import com.exmosaul.queteparece.ui.navigation.BottomNavBar
 
+
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun SearchScreen(navController: NavController, viewModel: SearchViewModel = androidx.lifecycle.viewmodel.compose.viewModel()) {

@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
-
 data class SearchUiState(
     val query: String = "",
     val selectedGenres: Set<String> = emptySet(),

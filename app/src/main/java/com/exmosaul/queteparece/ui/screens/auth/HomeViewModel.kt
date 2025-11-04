@@ -8,7 +8,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-
 data class HomeUiState(
     val featuredMovie: Movie? = null,
     val novedades: List<Movie> = emptyList(),
