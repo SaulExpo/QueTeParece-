@@ -94,10 +94,9 @@ class SearchViewModel : ViewModel() {
                     val featured = doc.getBoolean("isFeatured") == true
                     val genres = (doc.get("genres") as? List<*>)?.filterIsInstance<String>() ?: emptyList()
                     val type = doc.getString("type") ?: ""
-                    val cast = (doc.get("cast") as? List<*>)?.filterIsInstance<String>() ?: emptyList()
 
 
-                    Movie(id, title, description, imageUrl, category, featured, genres, type, cast)
+                    Movie(id, title, description, imageUrl, category, featured, genres, type)
                 }.filter { movie ->
                     // 🔎 2️⃣ Aplicar todos los filtros combinados (modo AND)
                     val matchesQuery = s.query.isBlank() || movie.title.contains(s.query, ignoreCase = true)

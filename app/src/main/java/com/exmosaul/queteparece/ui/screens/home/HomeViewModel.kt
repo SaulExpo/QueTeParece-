@@ -1,4 +1,4 @@
-package com.exmosaul.queteparece.ui.screens.auth
+package com.exmosaul.queteparece.ui.screens.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -33,13 +33,14 @@ class HomeViewModel(
         viewModelScope.launch {
             try {
                 _uiState.value = _uiState.value.copy(isLoading = true)
-                val featured = repo.getFeaturedMovie()
                 val novedades = repo.getMoviesByCategory("novedades")
                 val tendencias = repo.getMoviesByCategory("tendencias")
                 val animacion = repo.getMoviesByType("animada")
                 val liveAction = repo.getMoviesByType("live action")
+                val allMovies = novedades + tendencias + animacion + liveAction
+                val randomFeatured = allMovies.randomOrNull()
                 _uiState.value = HomeUiState(
-                    featuredMovie = featured,
+                    featuredMovie = randomFeatured,
                     novedades = novedades,
                     tendencias = tendencias,
                     animacion = animacion,

@@ -2,6 +2,7 @@ package com.exmosaul.queteparece.ui.navigation
 
 
 import FavoritesScreen
+import SearchViewAllScreen
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
@@ -22,14 +23,20 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.exmosaul.queteparece.ui.screens.auth.AuthScreen
-import com.exmosaul.queteparece.ui.screens.auth.HomeScreen
+import com.exmosaul.queteparece.ui.screens.home.HomeScreen
 import com.exmosaul.queteparece.ui.screens.search.SearchScreen
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.graphics.BlendMode.Companion.Screen
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
+import com.exmosaul.queteparece.ui.screens.actor.ActorDetailScreen
 import com.exmosaul.queteparece.ui.screens.detail.MovieDetailScreen
+import com.exmosaul.queteparece.ui.screens.home.MovieListScreen
+import com.exmosaul.queteparece.ui.screens.profile.EditProfileScreen
+import com.exmosaul.queteparece.ui.screens.profile.EditRecommendationsScreen
+import com.exmosaul.queteparece.ui.screens.profile.FriendProfileScreen
+import com.exmosaul.queteparece.ui.screens.profile.FriendRequestsScreen
 import com.exmosaul.queteparece.ui.screens.profile.ProfileScreen
+import com.exmosaul.queteparece.ui.screens.profile.SearchFriendsScreen
 import com.google.firebase.auth.FirebaseAuth
 
 
@@ -40,6 +47,16 @@ sealed class Routes(val route: String) {
     data object Favorites: Routes("favorites")
     data object Profile: Routes("profile")
     data object MovieDetail: Routes("movieDetail/{movieId}")
+    data object ActorDetail : Routes("actorDetail/{actorId}")
+    data object EditProfile : Routes("editProfile")
+    data object Friends : Routes("friends")
+    data object EditRecommendations : Routes("edit_recommendations")
+    object FriendProfile : Routes("friendProfile/{friendId}") {
+        fun create(friendId: String) = "friendProfile/$friendId"
+    }
+    data object FriendRequests : Routes("friendRequests")
+    data object SearchFriends : Routes("searchFriends")
+
 }
 
 
@@ -79,6 +96,39 @@ fun AppNavHost(navController: NavHostController) {
             val movieId = backStackEntry.arguments?.getString("movieId") ?: ""
             MovieDetailScreen(movieId = movieId, navController = navController)
         }
+        composable(
+            route = "actorDetail/{actorId}",
+            arguments = listOf(navArgument("actorId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val actorId = backStackEntry.arguments?.getString("actorId") ?: ""
+            ActorDetailScreen(actorId = actorId, navController = navController)
+        }
+        composable(Routes.EditProfile.route) {
+            EditProfileScreen(navController)
+        }
+        composable(Routes.EditRecommendations.route) {
+            EditRecommendationsScreen(navController)
+        }
+        composable(
+            route = Routes.FriendProfile.route,
+            arguments = listOf(navArgument("friendId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val friendId = backStackEntry.arguments?.getString("friendId")!!
+            FriendProfileScreen(navController, friendId)
+        }
+        composable(Routes.FriendRequests.route) {
+            FriendRequestsScreen(navController)
+        }
+        composable(Routes.SearchFriends.route) {
+            SearchFriendsScreen(navController)
+        }
+        composable("movieList/{title}") { backStackEntry ->
+            val title = backStackEntry.arguments?.getString("title") ?: ""
+            MovieListScreen(navController, title)
+        }
+        composable("searchViewAll") {
+            SearchViewAllScreen(navController)
+        }
     }
 }
 
@@ -96,33 +146,14 @@ fun BottomNavBar(navController: NavController) {
 
     NavigationBar(containerColor = MaterialTheme.colorScheme.primary) {
         items.forEach { item ->
-            val isHome = item.route == Routes.Home.route
-            val selected = if (isHome) {
-                // Considera el detalle como parte de Home para el estado seleccionado
-                currentRoute == Routes.Home.route || currentRoute.startsWith("movieDetail/")
-            } else {
-                currentRoute == item.route
-            }
 
             NavigationBarItem(
-                selected = selected,
+                selected = currentRoute == item.route,
                 onClick = {
-                    if (isHome) {
-                        // 🔥 Siempre volver a la Home raíz (no restaurar detalle)
-                        navController.navigate(Routes.Home.route) {
-                            // Elimina cualquier cosa por encima y la propia Home, luego navega de nuevo a Home
-                            popUpTo(Routes.Home.route) { inclusive = true }
-                            launchSingleTop = true
-                            // ¡OJO! No usamos restoreState aquí para no volver a abrir el último detalle
-                        }
-                    } else {
-                        // Pestañas normales: conserva estado
-                        navController.navigate(item.route) {
-                            // Mantén el back stack limpio desde Home
-                            popUpTo(Routes.Home.route) { saveState = true }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
+                    navController.navigate(item.route) {
+                        popUpTo(item.route) { inclusive = true }
+                        launchSingleTop = true
+                        restoreState = false
                     }
                 },
                 icon = {

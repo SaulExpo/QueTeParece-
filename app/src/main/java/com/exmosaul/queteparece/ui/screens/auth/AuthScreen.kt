@@ -26,7 +26,6 @@ fun AuthScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    // Detecta autenticación exitosa
     LaunchedEffect(uiState.user) {
         if (uiState.user != null) {
             println("Usuario autenticado: " + uiState.user)

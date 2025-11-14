@@ -14,6 +14,7 @@ class AuthRepository(
 
     suspend fun signIn(email: String, password: String): FirebaseUser? {
         println("_______________________")
+        println(auth)
         auth.signInWithEmailAndPassword(email.trim(), password).await()
         println(auth.currentUser)
         println("_______________________")
@@ -24,12 +25,16 @@ class AuthRepository(
         val result = auth.createUserWithEmailAndPassword(email.trim(), password).await()
         val firebaseUser = result.user ?: return null
 
-        // Guardar datos adicionales en Firestore
         val user = User(
             uid = firebaseUser.uid,
             name = name.trim(),
             username = username.trim(),
-            email = email.trim()
+            email = email.trim(),
+            photoUrl = "https://icon-library.com/images/default-user-icon/default-user-icon-13.jpg",
+            friends = emptyList(),
+            friendRequests = emptyList(),
+            recommendedMovies = emptyList(),
+            favorites = emptyList(),
         )
 
         db.collection("users").document(firebaseUser.uid).set(user).await()

@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.rememberNavController
 import com.exmosaul.queteparece.ui.navigation.AppNavHost
@@ -12,17 +13,22 @@ import com.exmosaul.queteparece.ui.theme.AppTheme
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         FirebaseApp.initializeApp(this)
-
         val auth = FirebaseAuth.getInstance()
         super.onCreate(savedInstanceState)
         setContent {
             AppTheme {
+                LaunchedEffect(Unit) {
+                    //updateMovieDescriptions();
+                }
                 Surface(
                     color = MaterialTheme.colorScheme.background
                 ) {
@@ -33,6 +39,50 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+
+fun updateMovieDescriptions() = runBlocking(Dispatchers.IO) {
+    val db = FirebaseFirestore.getInstance()
+
+    val descriptions = mapOf(
+        "Parasite" to "Una familia con dificultades económicas se infiltra poco a poco en la vida de una familia rica. Un reflejo brutal y satírico de la desigualdad social.",
+        "Knives Out" to "Un detective investiga la misteriosa muerte de un novelista millonario. Intriga, humor y giros inesperados en un clásico misterio moderno.",
+        "Glass Onion: Un misterio de Knives Out" to "Un nuevo caso lleva al detective Benoit Blanc a una isla privada donde un grupo de amigos oculta secretos y traiciones.",
+        "Bullet Train" to "Cinco asesinos se encuentran a bordo del mismo tren bala en Japón, descubriendo que sus misiones están conectadas.",
+        "Nope" to "Dos hermanos que manejan un rancho de caballos descubren algo inexplicable en el cielo. La fama, el espectáculo y el terror se mezclan.",
+        "The Menu" to "Un comedor exclusivo en una isla lleva a sus invitados a una experiencia culinaria tan extrema como inquietante.",
+        "The Northman" to "Un príncipe vikingo busca venganza tras el asesinato de su padre. Violencia, mitología y destino se entrelazan en una épica brutal.",
+        "John Wick 3: Parabellum" to "John Wick huye tras ser declarado excomunicado, enfrentándose al mundo entero de asesinos profesionales.",
+        "The Equalizer 3" to "Robert McCall intenta encontrar paz en Italia, pero una organización criminal local amenaza su nuevo hogar.",
+        "Gran Turismo" to "Un joven gamer convierte su talento en simuladores de carreras en una carrera real, enfrentando todos los límites.",
+        "Blue Beetle" to "Un extraterrestre simbionte se une a un joven, otorgándole una armadura superpoderosa mientras descubre su nuevo destino.",
+        "Transformers: El despertar de las bestias" to "La humanidad se ve envuelta en una guerra intergaláctica cuando nuevas facciones de Transformers llegan a la Tierra."
+    )
+
+    for ((title, desc) in descriptions) {
+        val snapshot = db.collection("movies")
+            .whereEqualTo("title", title)
+            .get()
+            .await()
+
+        if (!snapshot.isEmpty) {
+            val movieDoc = snapshot.documents.first().reference
+            movieDoc.set(
+                mapOf("description" to desc),
+                SetOptions.merge()
+            )
+            println("✅ Descripción actualizada para: $title")
+        } else {
+            println("⚠️ No se encontró la película: $title")
+        }
+    }
+
+    println("🎉 Actualización de descripciones completada.")
+}
+
+
+
+
+
 
 private fun addSampleMoviesToFirestore() {
     val db = FirebaseFirestore.getInstance()

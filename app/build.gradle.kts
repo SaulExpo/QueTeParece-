@@ -65,6 +65,7 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+    implementation("androidx.compose.material:material-icons-extended")
     implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
     implementation("com.google.firebase:firebase-auth-ktx")
     implementation("com.google.firebase:firebase-firestore-ktx")
@@ -75,5 +76,8 @@ dependencies {
     implementation("androidx.compose.ui:ui-text-google-fonts:1.7.4")
 
     implementation("io.coil-kt:coil-compose:2.7.0")
+
+    implementation("com.squareup.okhttp3:okhttp:4.11.0")
+    implementation("org.json:json:20231013")
 
 }

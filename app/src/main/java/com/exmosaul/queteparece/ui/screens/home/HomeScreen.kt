@@ -1,6 +1,5 @@
-package com.exmosaul.queteparece.ui.screens.auth
+package com.exmosaul.queteparece.ui.screens.home
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -138,7 +137,14 @@ fun Section(title: String, movies: List<Movie>, navController: NavController) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(title, color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.titleMedium)
-            Text("Ver todo", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodyMedium)
+            Text(
+                "Ver todo",
+                color = MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.clickable {
+                    navController.navigate("movieList/$title")
+                }
+            )
         }
 
         Spacer(modifier = Modifier.height(8.dp))

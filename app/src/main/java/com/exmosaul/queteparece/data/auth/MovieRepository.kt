@@ -1,5 +1,6 @@
 package com.exmosaul.queteparece.data.auth
 
+import com.exmosaul.queteparece.data.model.Actor
 import com.google.firebase.firestore.FirebaseFirestore
 import com.exmosaul.queteparece.data.model.Movie
 import kotlinx.coroutines.tasks.await
@@ -41,23 +42,6 @@ class MovieRepository(
         }
     }
 
-    // 🟢 Película destacada
-    suspend fun getFeaturedMovie(): Movie? {
-        return try {
-            val snapshot = db.collection("movies")
-                .whereEqualTo("isFeatured", true)
-                .limit(1)
-                .get()
-                .await()
-
-            snapshot.documents.firstOrNull()?.let { doc ->
-                doc.toObject(Movie::class.java)?.copy(id = doc.id)
-            }
-        } catch (e: Exception) {
-            println("❌ Error getFeaturedMovie: ${e.message}")
-            null
-        }
-    }
 
     // 🟢 Obtener película por ID (para la pantalla de detalle)
     suspend fun getMovieById(id: String): Movie? {
@@ -74,4 +58,6 @@ class MovieRepository(
             null
         }
     }
+
+
 }

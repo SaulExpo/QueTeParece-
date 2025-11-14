@@ -10,6 +10,8 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -204,15 +206,22 @@ fun SearchScreen(navController: NavController, viewModel: SearchViewModel = andr
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                val genres = listOf("Acción", "Drama", "Aventura", "Comedia", "Fantasía", "Terror",
-                    "Histórica", "Superhéroes", "Biográfica", "Familiar", "Crimen", "Ciencia Ficción",
-                    "Psicológico", "Misterio", "Musical", "Infantil", "suspense", "Sobrenatural",
-                    "Deportes", "Social", "Postapocalíptica", "Romance", "Espionaje")
+                val genres = listOf(
+                    "Acción", "Drama", "Aventura", "Comedia", "Fantasía", "Terror",
+                    "Histórica", "Superhéroes", "Biográfica", "Familiar", "Crimen",
+                    "Ciencia Ficción", "Psicológico", "Misterio", "Musical", "Infantil",
+                    "Suspense", "Sobrenatural", "Deportes", "Social", "Postapocalíptica",
+                    "Romance", "Espionaje"
+                )
+
+                var expanded by remember { mutableStateOf(false) }
+                val visibleGenres = if (expanded) genres else genres.take(3)
+
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    genres.forEach { genre ->
+                    visibleGenres.forEach { genre ->
                         val isSelected = genre in uiState.selectedGenres
                         val bgColor by animateColorAsState(
                             if (isSelected)
@@ -241,6 +250,15 @@ fun SearchScreen(navController: NavController, viewModel: SearchViewModel = andr
                             )
                         }
                     }
+
+                    // Flecha expandir/contraer
+                    IconButton(onClick = { expanded = !expanded }) {
+                        Icon(
+                            imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                            contentDescription = if (expanded) "Mostrar menos" else "Mostrar más",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
                 }
             }
 
@@ -260,7 +278,10 @@ fun SearchScreen(navController: NavController, viewModel: SearchViewModel = andr
                     Text(
                         "Ver todo",
                         color = MaterialTheme.colorScheme.primary,
-                        style = MaterialTheme.typography.bodyMedium
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.clickable {
+                            navController.navigate("searchViewAll")
+                        }
                     )
                 }
 
