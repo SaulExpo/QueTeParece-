@@ -362,6 +362,9 @@ fun SectionTitle(textRes: Int) {
 
 @Composable
 fun MovieSearchRow(movie: Movie, onClick: () -> Unit) {
+    val currentLang by LanguageManager.language.collectAsState()
+    val localizedTitle = movie.title[currentLang] ?: movie.title["es"] ?: ""
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -369,7 +372,7 @@ fun MovieSearchRow(movie: Movie, onClick: () -> Unit) {
     ) {
         AsyncImage(
             model = movie.imageUrl,
-            contentDescription = movie.title.values.firstOrNull(),
+            contentDescription = localizedTitle,
             modifier = Modifier
                 .size(80.dp)
                 .clip(RoundedCornerShape(8.dp)),
@@ -377,7 +380,7 @@ fun MovieSearchRow(movie: Movie, onClick: () -> Unit) {
         )
         Spacer(Modifier.width(12.dp))
         Text(
-            movie.title.values.firstOrNull() ?: "",
+            localizedTitle,
             style = MaterialTheme.typography.bodyLarge,
             modifier = Modifier.align(Alignment.CenterVertically)
         )
@@ -428,12 +431,15 @@ fun SimpleInfoText(textRes: Int) {
 
 @Composable
 fun MoviePosterSmall(movie: Movie, onClick: () -> Unit) {
+    val currentLang by LanguageManager.language.collectAsState()
+    val localizedTitle = movie.title[currentLang] ?: movie.title["es"] ?: ""
+
     AsyncImage(
         model = ImageRequest.Builder(LocalContext.current)
             .data(movie.imageUrl)
             .crossfade(true)
             .build(),
-        contentDescription = movie.title.values.firstOrNull(),
+        contentDescription = localizedTitle,
         modifier = Modifier
             .width(120.dp)
             .height(160.dp)
