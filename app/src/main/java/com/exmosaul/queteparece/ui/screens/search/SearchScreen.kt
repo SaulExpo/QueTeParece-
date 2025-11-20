@@ -4,7 +4,19 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -13,8 +25,20 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -23,12 +47,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.exmosaul.queteparece.R
+import com.exmosaul.queteparece.data.model.Movie
 import com.exmosaul.queteparece.ui.navigation.BottomNavBar
 
 
@@ -37,17 +63,20 @@ import com.exmosaul.queteparece.ui.navigation.BottomNavBar
 fun SearchScreen(navController: NavController, viewModel: SearchViewModel = androidx.lifecycle.viewmodel.compose.viewModel()) {
     val uiState by viewModel.uiState.collectAsState()
 
-
     Scaffold(
         bottomBar = { BottomNavBar(navController) },
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
+
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
                 .padding(horizontal = 16.dp)
         ) {
+
+            val isSearching = uiState.query.isNotBlank()
+
             item {
                 Box(
                     modifier = Modifier.fillMaxWidth(),
@@ -55,7 +84,7 @@ fun SearchScreen(navController: NavController, viewModel: SearchViewModel = andr
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_clapper_placeholder),
-                        contentDescription = "Logo",
+                        contentDescription = stringResource(R.string.logo),
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier
                             .padding(12.dp)
@@ -64,10 +93,9 @@ fun SearchScreen(navController: NavController, viewModel: SearchViewModel = andr
                 }
             }
 
-            // 🔍 Barra de búsqueda
             item {
                 Text(
-                    "Buscador",
+                    stringResource(R.string.search_screen_title),
                     color = MaterialTheme.colorScheme.primary,
                     style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
                 )
@@ -77,7 +105,7 @@ fun SearchScreen(navController: NavController, viewModel: SearchViewModel = andr
                 TextField(
                     value = uiState.query,
                     onValueChange = viewModel::onQueryChange,
-                    placeholder = { Text("Buscar película...") },
+                    placeholder = { Text(stringResource(R.string.search_placeholder)) },
                     leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
                     shape = RoundedCornerShape(25.dp),
                     colors = TextFieldDefaults.colors(
@@ -93,18 +121,54 @@ fun SearchScreen(navController: NavController, viewModel: SearchViewModel = andr
                 )
             }
 
-            // 🧭 Selección de categoría
+            if (isSearching) {
+                item {
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    when {
+                        uiState.isLoading -> {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 40.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                            }
+                        }
+
+                        uiState.results.isEmpty() -> {
+                            Text(
+                                stringResource(R.string.no_results),
+                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+                            )
+                        }
+
+                        else -> {
+                            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                                uiState.results.forEach { movie ->
+                                    MovieSearchRow(movie) {
+                                        navController.navigate("movieDetail/${movie.id}")
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                return@LazyColumn
+            }
+
             item {
-                Spacer(modifier = Modifier.height(24.dp))
-                Text(
-                    "Selecciona una categoría",
-                    color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                SectionTitle(R.string.select_category)
+
+                val categories = listOf("novedades", "tendencias", "recomendadas")
+                val categoryLabels = mapOf(
+                    "novedades" to stringResource(R.string.cat_new_releases),
+                    "tendencias" to stringResource(R.string.cat_trending),
+                    "recomendadas" to stringResource(R.string.cat_recommended)
                 )
 
-                Spacer(modifier = Modifier.height(12.dp))
-
-                val categories = listOf("novedades", "tendencias")
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -112,50 +176,32 @@ fun SearchScreen(navController: NavController, viewModel: SearchViewModel = andr
                     categories.forEach { category ->
                         val isSelected = uiState.selectedGenres.contains(category)
                         val bgColor by animateColorAsState(
-                            if (isSelected)
-                                MaterialTheme.colorScheme.primary
-                            else
-                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.25f)
+                            if (isSelected) MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.25f)
                         )
                         val scale by animateFloatAsState(if (isSelected) 1.1f else 1f)
 
-                        Box(
-                            modifier = Modifier
-                                .scale(scale)
-                                .clip(RoundedCornerShape(20.dp))
-                                .background(bgColor)
-                                .clickable {
-                                    // Solo puede haber una categoría activa
-                                    viewModel.selectExclusiveCategory(category)
-                                }
-                                .padding(horizontal = 16.dp, vertical = 8.dp),
-                            contentAlignment = Alignment.Center
+                        CategoryChip(
+                            label = categoryLabels[category] ?: category,
+                            selected = isSelected,
+                            bgColor = bgColor,
+                            scale = scale
                         ) {
-                            Text(
-                                category.replaceFirstChar { it.uppercase() },
-                                color = if (isSelected)
-                                    MaterialTheme.colorScheme.onPrimary
-                                else
-                                    MaterialTheme.colorScheme.primary,
-                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium)
-                            )
+                            viewModel.selectExclusiveCategory(category)
                         }
                     }
                 }
             }
 
-// 🎬 Selección de tipo
             item {
-                Spacer(modifier = Modifier.height(24.dp))
-                Text(
-                    "Selecciona el tipo de película",
-                    color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                SectionTitle(R.string.select_type)
+
+                val types = listOf("animada", "live_action")
+                val typeLabels = mapOf(
+                    "animada" to stringResource(R.string.type_animated),
+                    "live_action" to stringResource(R.string.type_live_action)
                 )
 
-                Spacer(modifier = Modifier.height(12.dp))
-
-                val types = listOf("animada", "live action")
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -163,55 +209,57 @@ fun SearchScreen(navController: NavController, viewModel: SearchViewModel = andr
                     types.forEach { type ->
                         val isSelected = uiState.selectedGenres.contains(type)
                         val bgColor by animateColorAsState(
-                            if (isSelected)
-                                MaterialTheme.colorScheme.primary
-                            else
-                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.25f)
+                            if (isSelected) MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.25f)
                         )
                         val scale by animateFloatAsState(if (isSelected) 1.1f else 1f)
 
-                        Box(
-                            modifier = Modifier
-                                .scale(scale)
-                                .clip(RoundedCornerShape(20.dp))
-                                .background(bgColor)
-                                .clickable {
-                                    // Solo puede haber un tipo activo
-                                    viewModel.selectExclusiveType(type)
-                                }
-                                .padding(horizontal = 16.dp, vertical = 8.dp),
-                            contentAlignment = Alignment.Center
+                        CategoryChip(
+                            label = typeLabels[type] ?: type,
+                            selected = isSelected,
+                            bgColor = bgColor,
+                            scale = scale
                         ) {
-                            Text(
-                                type.replaceFirstChar { it.uppercase() },
-                                color = if (isSelected)
-                                    MaterialTheme.colorScheme.onPrimary
-                                else
-                                    MaterialTheme.colorScheme.primary,
-                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium)
-                            )
+                            viewModel.selectExclusiveType(type)
                         }
                     }
                 }
             }
 
-            // 🎭 Selección de géneros (múltiple, como ya tenías)
             item {
-                Spacer(modifier = Modifier.height(24.dp))
-                Text(
-                    "Elige el género de lo que buscas",
-                    color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
+                SectionTitle(R.string.select_genre)
 
                 val genres = listOf(
                     "Acción", "Drama", "Aventura", "Comedia", "Fantasía", "Terror",
                     "Histórica", "Superhéroes", "Biográfica", "Familiar", "Crimen",
-                    "Ciencia Ficción", "Psicológico", "Misterio", "Musical", "Infantil",
+                    "Ciencia_Ficción", "Psicológico", "Misterio", "Musical", "Infantil",
                     "Suspense", "Sobrenatural", "Deportes", "Social", "Postapocalíptica",
                     "Romance", "Espionaje"
+                )
+                val genreLabels = mapOf(
+                    "Acción" to stringResource(R.string.gen_action),
+                    "Drama" to stringResource(R.string.gen_drama),
+                    "Aventura" to stringResource(R.string.gen_adventure),
+                    "Comedia" to stringResource(R.string.gen_comedy),
+                    "Fantasía" to stringResource(R.string.gen_fantasy),
+                    "Terror" to stringResource(R.string.gen_horror),
+                    "Histórica" to stringResource(R.string.gen_historical),
+                    "Superhéroes" to stringResource(R.string.gen_superheroes),
+                    "Biográfica" to stringResource(R.string.gen_biographical),
+                    "Familiar" to stringResource(R.string.gen_family),
+                    "Crimen" to stringResource(R.string.gen_crime),
+                    "Ciencia_Ficción" to stringResource(R.string.gen_sci_fi),
+                    "Psicológico" to stringResource(R.string.gen_psychological),
+                    "Misterio" to stringResource(R.string.gen_mystery),
+                    "Musical" to stringResource(R.string.gen_musical),
+                    "Infantil" to stringResource(R.string.gen_children),
+                    "Suspense" to stringResource(R.string.gen_thriller),
+                    "Sobrenatural" to stringResource(R.string.gen_supernatural),
+                    "Deportes" to stringResource(R.string.gen_sports),
+                    "Social" to stringResource(R.string.gen_social),
+                    "Postapocalíptica" to stringResource(R.string.gen_post_apoc),
+                    "Romance" to stringResource(R.string.gen_romance),
+                    "Espionaje" to stringResource(R.string.gen_spy)
                 )
 
                 var expanded by remember { mutableStateOf(false) }
@@ -222,63 +270,52 @@ fun SearchScreen(navController: NavController, viewModel: SearchViewModel = andr
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     visibleGenres.forEach { genre ->
-                        val isSelected = genre in uiState.selectedGenres
+                        val isSelected = uiState.selectedGenres.contains(genre)
                         val bgColor by animateColorAsState(
-                            if (isSelected)
-                                MaterialTheme.colorScheme.primary
-                            else
-                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.25f)
+                            if (isSelected) MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.25f)
                         )
                         val scale by animateFloatAsState(if (isSelected) 1.1f else 1f)
 
-                        Box(
-                            modifier = Modifier
-                                .scale(scale)
-                                .clip(RoundedCornerShape(20.dp))
-                                .background(bgColor)
-                                .clickable { viewModel.toggleGenre(genre) }
-                                .padding(horizontal = 16.dp, vertical = 8.dp),
-                            contentAlignment = Alignment.Center
+                        CategoryChip(
+                            label = genreLabels[genre] ?: genre,
+                            selected = isSelected,
+                            bgColor = bgColor,
+                            scale = scale
                         ) {
-                            Text(
-                                genre,
-                                color = if (isSelected)
-                                    MaterialTheme.colorScheme.onPrimary
-                                else
-                                    MaterialTheme.colorScheme.primary,
-                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium)
-                            )
+                            viewModel.toggleGenre(genre)
                         }
                     }
 
-                    // Flecha expandir/contraer
                     IconButton(onClick = { expanded = !expanded }) {
                         Icon(
                             imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                            contentDescription = if (expanded) "Mostrar menos" else "Mostrar más",
+                            contentDescription = if (expanded)
+                                stringResource(R.string.show_less)
+                            else
+                                stringResource(R.string.show_more),
                             tint = MaterialTheme.colorScheme.primary
                         )
                     }
                 }
             }
 
-            // 🎬 Resultados
             item {
                 Spacer(modifier = Modifier.height(28.dp))
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        "Resultados",
+                        stringResource(R.string.results),
                         color = MaterialTheme.colorScheme.primary,
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                     )
                     Text(
-                        "Ver todo",
+                        stringResource(R.string.view_all),
                         color = MaterialTheme.colorScheme.primary,
-                        style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.clickable {
                             navController.navigate("searchViewAll")
                         }
@@ -288,51 +325,19 @@ fun SearchScreen(navController: NavController, viewModel: SearchViewModel = andr
                 Spacer(modifier = Modifier.height(12.dp))
 
                 when {
-                    uiState.isLoading -> {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 40.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator(
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                    }
+                    uiState.isLoading -> LoadingBox()
+                    uiState.query.isBlank() && uiState.selectedGenres.isEmpty() ->
+                        SimpleInfoText(R.string.results_will_appear)
 
-                    uiState.query.isBlank() && uiState.selectedGenres.isEmpty() -> {
-                        Text(
-                            "Aquí aparecerán los resultados",
-                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
-                        )
-                    }
-
-                    uiState.results.isEmpty() -> {
-                        Text(
-                            "No hay resultados válidos",
-                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
-                        )
-                    }
+                    uiState.results.isEmpty() ->
+                        SimpleInfoText(R.string.no_valid_results)
 
                     else -> {
                         LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                             items(uiState.results) { movie ->
-                                AsyncImage(
-                                    model = ImageRequest.Builder(LocalContext.current)
-                                        .data(movie.imageUrl)
-                                        .crossfade(true)
-                                        .build(),
-                                    contentDescription = movie.title,
-                                    modifier = Modifier
-                                        .width(120.dp)
-                                        .height(160.dp)
-                                        .clip(RoundedCornerShape(12.dp))
-                                        .clickable {
-                                            navController.navigate("movieDetail/${movie.id}")
-                                        },
-                                    contentScale = ContentScale.Crop
-                                )
+                                MoviePosterSmall(movie) {
+                                    navController.navigate("movieDetail/${movie.id}")
+                                }
                             }
                         }
                     }
@@ -344,3 +349,96 @@ fun SearchScreen(navController: NavController, viewModel: SearchViewModel = andr
     }
 }
 
+@Composable
+fun SectionTitle(textRes: Int) {
+    Spacer(modifier = Modifier.height(24.dp))
+    Text(
+        stringResource(textRes),
+        color = MaterialTheme.colorScheme.primary,
+        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+    )
+    Spacer(modifier = Modifier.height(12.dp))
+}
+
+@Composable
+fun MovieSearchRow(movie: Movie, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+    ) {
+        AsyncImage(
+            model = movie.imageUrl,
+            contentDescription = movie.title.values.firstOrNull(),
+            modifier = Modifier
+                .size(80.dp)
+                .clip(RoundedCornerShape(8.dp)),
+            contentScale = ContentScale.Crop
+        )
+        Spacer(Modifier.width(12.dp))
+        Text(
+            movie.title.values.firstOrNull() ?: "",
+            style = MaterialTheme.typography.bodyLarge,
+            modifier = Modifier.align(Alignment.CenterVertically)
+        )
+    }
+}
+
+@Composable
+fun CategoryChip(label: String, selected: Boolean, bgColor: Color, scale: Float, onClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .scale(scale)
+            .clip(RoundedCornerShape(20.dp))
+            .background(bgColor)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            label,
+            color = if (selected) MaterialTheme.colorScheme.onPrimary
+            else MaterialTheme.colorScheme.primary,
+            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium)
+        )
+    }
+}
+
+@Composable
+fun LoadingBox() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 40.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        CircularProgressIndicator(
+            color = MaterialTheme.colorScheme.primary
+        )
+    }
+}
+
+@Composable
+fun SimpleInfoText(textRes: Int) {
+    Text(
+        stringResource(textRes),
+        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+    )
+}
+
+@Composable
+fun MoviePosterSmall(movie: Movie, onClick: () -> Unit) {
+    AsyncImage(
+        model = ImageRequest.Builder(LocalContext.current)
+            .data(movie.imageUrl)
+            .crossfade(true)
+            .build(),
+        contentDescription = movie.title.values.firstOrNull(),
+        modifier = Modifier
+            .width(120.dp)
+            .height(160.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .clickable(onClick = onClick),
+        contentScale = ContentScale.Crop
+    )
+}

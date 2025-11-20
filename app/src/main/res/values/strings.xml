@@ -1,3 +1,171 @@
 <resources>
-    <string name="app_name">QueTeParece!</string>
+    <string name="app_name" translatable="false">QueTeParece!</string>
+    <string name="back">Volver</string>
+
+    <string name="rating_title">Valoración</string>
+    <string name="rate_button">Valorar</string>
+
+    <string name="cast_title">Reparto</string>
+
+    <string name="reviews_title">Reseñas</string>
+    <string name="add_review_placeholder">Añadir review</string>
+    <string name="send">Enviar</string>
+
+    <string name="delete_review">Eliminar reseña</string>
+    <string name="delete_review_confirm">¿Seguro que deseas eliminar esta reseña?</string>
+    <string name="yes_delete">Sí, eliminar</string>
+    <string name="cancel">Cancelar</string>
+
+    <string name="rate_movie">Valorar %1$s</string>
+    <string name="save_rating">Guardar valoración</string>
+
+    <string name="toggle_favorite">Añadir o quitar de favoritos</string>
+
+    <string name="favorites_title">Películas Favoritas</string>
+    <string name="favorites_empty">No tienes películas en favoritos todavía.</string>
+    <string name="logo_desc">Logo</string>
+    <string name="favorite_button">Favorito</string>
+
+    <string name="home_featured_button">Detalles</string>
+    <string name="home_section_new">Novedades destacadas</string>
+    <string name="home_section_trending">En tendencias</string>
+    <string name="home_section_recommended">Creemos que te gustarán</string>
+    <string name="home_section_animation">Películas Animadas</string>
+    <string name="home_section_live_action">Películas "live action"</string>
+
+    <string name="see_all">Ver todo</string>
+
+    <string name="edit_recommendations_title">Recomendar películas (3 máx)</string>
+    <string name="save">Guardar</string>
+
+    <string name="logo">Logo</string>
+    <string name="edit">Editar</string>
+    <string name="language">Idioma</string>
+    <string name="spanish">Español</string>
+    <string name="english">Inglés</string>
+    <string name="french">Francés</string>
+    <string name="german">Alemán</string>
+    <string name="friends">Amigos</string>
+    <string name="search">Buscar</string>
+    <string name="search_friends">Buscar amigos</string>
+    <string name="requests">Solicitudes</string>
+    <string name="recommendations">Recomendaciones</string>
+    <string name="no_recommendations">No has recomendado ninguna película aún.</string>
+    <string name="reviews">Reseñas</string>
+    <string name="logout">Cerrar sesión</string>
+    <string name="logout_confirm">¿Seguro que deseas cerrar tu sesión?</string>
+    <string name="yes_logout">Sí, salir</string>
+    <string name="delete">Eliminar</string>
+    <string name="delete_friend">Eliminar a %1$s</string>
+    <string name="delete_friend_confirm">¿Seguro que deseas eliminarlo de amigo?</string>
+
+    <string name="search_screen_title">Buscador</string>
+    <string name="search_placeholder">Buscar película...</string>
+    <string name="no_results">No hay resultados</string>
+    <string name="select_category">Selecciona una categoría</string>
+    <string name="select_type">Selecciona el tipo de película</string>
+    <string name="select_genre">Elige el género de lo que buscas</string>
+    <string name="show_more">Mostrar más</string>
+    <string name="show_less">Mostrar menos</string>
+    <string name="results">Resultados</string>
+    <string name="view_all">Ver todo</string>
+    <string name="results_will_appear">Aquí aparecerán los resultados</string>
+    <string name="no_valid_results">No hay resultados válidos</string>
+
+    <string name="cat_new_releases">Novedades destacadas</string>
+    <string name="cat_trending">En tendencias</string>
+    <string name="cat_recommended">Recomendadas para ti</string>
+
+    <string name="type_animated">Animada</string>
+    <string name="type_live_action">Live action</string>
+
+    <string name="gen_action">Acción</string>
+    <string name="gen_drama">Drama</string>
+    <string name="gen_adventure">Aventura</string>
+    <string name="gen_comedy">Comedia</string>
+    <string name="gen_fantasy">Fantasía</string>
+    <string name="gen_horror">Terror</string>
+    <string name="gen_historical">Histórica</string>
+    <string name="gen_superheroes">Superhéroes</string>
+    <string name="gen_biographical">Biográfica</string>
+    <string name="gen_family">Familiar</string>
+    <string name="gen_crime">Crimen</string>
+    <string name="gen_sci_fi">Ciencia Ficción</string>
+    <string name="gen_psychological">Psicológico</string>
+    <string name="gen_mystery">Misterio</string>
+    <string name="gen_musical">Musical</string>
+    <string name="gen_children">Infantil</string>
+    <string name="gen_thriller">Suspense</string>
+    <string name="gen_supernatural">Sobrenatural</string>
+    <string name="gen_sports">Deportes</string>
+    <string name="gen_social">Social</string>
+    <string name="gen_post_apoc">Postapocalíptica</string>
+    <string name="gen_romance">Romance</string>
+    <string name="gen_spy">Espionaje</string>
+
+    <string name="friend_requests_title">Solicitudes de amistad</string>
+    <string name="accept">Aceptar</string>
+    <string name="reject">Rechazar</string>
+    <string name="no_requests">No tienes solicitudes de amistad.</string>
+    <string name="loading">Cargando…</string>
+
+    <string name="search_users">Buscar usuarios...</string>
+    <string name="add_friend">Agregar</string>
+    <string name="request_sent">Solicitud enviada</string>
+    <string name="friends_status">Amigos</string>
+
+    <string name="results_will_show_here">Aquí aparecerán los resultados</string>
+    <string name="no_users_found">Ningún usuario encaja con dicho nombre</string>
+
+    <string name="edit_profile_title">Editar Perfil</string>
+
+    <string name="change_profile_photo">Cambiar foto de perfil</string>
+    <string name="choose_gallery">Elegir de la galería</string>
+    <string name="take_photo">Tomar con la cámara</string>
+
+    <string name="personal_info">Información personal</string>
+    <string name="name">Nombre</string>
+    <string name="username">Nombre de usuario</string>
+
+    <string name="saving">Guardando...</string>
+    <string name="save_changes">Guardar cambios</string>
+
+    <string name="friend_profile_back">Volver</string>
+
+    <string name="send_request">Enviar solicitud</string>
+
+    <string name="friends_title">Amigos (%1$d)</string>
+    <string name="friends_card_title">Amigos</string>
+    <string name="friends_hidden">Añádelo como amigo para ver a quién sigue.</string>
+
+    <string name="recommendations_title">Recomendaciones</string>
+    <string name="profile_photo">Foto de perfil</string>
+
+    <string name="years_old">%1$d años</string>
+    <string name="no_bio">Sin biografía disponible.</string>
+    <string name="movies_title">Películas</string>
+
+    <string name="auth_title_sign_in">Inicia sesión</string>
+    <string name="auth_title_sign_up">Crea tu cuenta</string>
+
+    <string name="auth_full_name">Nombre completo</string>
+    <string name="auth_username">Nombre de usuario</string>
+    <string name="auth_email">Correo electrónico</string>
+    <string name="auth_password">Contraseña</string>
+
+    <string name="auth_sign_in">Iniciar sesión</string>
+    <string name="auth_sign_up">Registrarse</string>
+
+    <string name="auth_toggle_to_signup">¿No tienes cuenta? Regístrate</string>
+    <string name="auth_toggle_to_signin">¿Ya tienes cuenta? Inicia sesión</string>
+
+    <string name="auth_forgot_password">¿Has olvidado la contraseña?</string>
+    <string name="auth_reset_email_sent">Se ha enviado un correo para restablecer tu contraseña.</string>
+    <string name="auth_reset_email_error">No se pudo enviar el correo de recuperación.</string>
+
+    <string name="auth_languages">Idioma</string>
+
+    <string name="auth_verification_email_sent">
+    Te hemos enviado un correo de verificación. Revisa tu bandeja de entrada.
+    </string>
 </resources>

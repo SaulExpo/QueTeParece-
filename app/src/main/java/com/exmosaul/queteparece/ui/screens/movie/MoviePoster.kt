@@ -1,5 +1,6 @@
 package com.exmosaul.queteparece.ui.screens.movie
 
+import LanguageManager
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.height
@@ -13,6 +14,8 @@ import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -29,10 +32,16 @@ fun MoviePoster(
     onFavoriteClick: () -> Unit,
     onClick: () -> Unit
 ) {
+    val language by LanguageManager.language.collectAsState()
+
+    val localizedTitle = movie.title[language]
+        ?: movie.title["es"]
+        ?: ""
+
     Box {
         AsyncImage(
             model = movie.imageUrl,
-            contentDescription = movie.title,
+            contentDescription = localizedTitle,
             modifier = Modifier
                 .width(120.dp)
                 .height(170.dp)

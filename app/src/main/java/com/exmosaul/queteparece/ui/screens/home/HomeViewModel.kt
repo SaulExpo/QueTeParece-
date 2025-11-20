@@ -11,6 +11,7 @@ import kotlinx.coroutines.launch
 data class HomeUiState(
     val featuredMovie: Movie? = null,
     val novedades: List<Movie> = emptyList(),
+    val recomendadas: List<Movie> = emptyList(),
     val tendencias: List<Movie> = emptyList(),
     val animacion: List<Movie> = emptyList(),
     val liveAction: List<Movie> = emptyList(),
@@ -35,14 +36,16 @@ class HomeViewModel(
                 _uiState.value = _uiState.value.copy(isLoading = true)
                 val novedades = repo.getMoviesByCategory("novedades")
                 val tendencias = repo.getMoviesByCategory("tendencias")
+                val recomendadas = repo.getMoviesByCategory("recomendadas")
                 val animacion = repo.getMoviesByType("animada")
                 val liveAction = repo.getMoviesByType("live action")
-                val allMovies = novedades + tendencias + animacion + liveAction
+                val allMovies = novedades + tendencias + recomendadas + animacion + liveAction
                 val randomFeatured = allMovies.randomOrNull()
                 _uiState.value = HomeUiState(
                     featuredMovie = randomFeatured,
                     novedades = novedades,
                     tendencias = tendencias,
+                    recomendadas = recomendadas,
                     animacion = animacion,
                     liveAction = liveAction,
                     isLoading = false

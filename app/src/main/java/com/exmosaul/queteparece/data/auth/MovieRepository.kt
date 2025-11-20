@@ -1,14 +1,12 @@
 package com.exmosaul.queteparece.data.auth
 
-import com.exmosaul.queteparece.data.model.Actor
-import com.google.firebase.firestore.FirebaseFirestore
 import com.exmosaul.queteparece.data.model.Movie
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 
 class MovieRepository(
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
 ) {
-    // 🟢 Películas por categoría
     suspend fun getMoviesByCategory(category: String): List<Movie> {
         return try {
             val snapshot = db.collection("movies")
@@ -16,16 +14,14 @@ class MovieRepository(
                 .get()
                 .await()
 
-            snapshot.documents.mapNotNull { doc ->
-                doc.toObject(Movie::class.java)?.copy(id = doc.id)
+            snapshot.documents.map { doc ->
+                documentToMovie(doc.data ?: emptyMap(), doc.id)
             }
         } catch (e: Exception) {
-            println("❌ Error getMoviesByCategory: ${e.message}")
             emptyList()
         }
     }
 
-    // 🟢 Películas por tipo (animada / live action)
     suspend fun getMoviesByType(type: String): List<Movie> {
         return try {
             val snapshot = db.collection("movies")
@@ -33,31 +29,54 @@ class MovieRepository(
                 .get()
                 .await()
 
-            snapshot.documents.mapNotNull { doc ->
-                doc.toObject(Movie::class.java)?.copy(id = doc.id)
+            snapshot.documents.map { doc ->
+                documentToMovie(doc.data ?: emptyMap(), doc.id)
             }
         } catch (e: Exception) {
-            println("❌ Error getMoviesByType: ${e.message}")
             emptyList()
         }
     }
 
 
-    // 🟢 Obtener película por ID (para la pantalla de detalle)
     suspend fun getMovieById(id: String): Movie? {
         return try {
             val doc = db.collection("movies").document(id).get().await()
             if (!doc.exists()) {
-                println("⚠️ Documento con ID $id no existe en Firestore")
                 null
             } else {
-                doc.toObject(Movie::class.java)?.copy(id = doc.id)
+                documentToMovie(doc.data ?: emptyMap(), doc.id)
             }
         } catch (e: Exception) {
-            println("❌ Error getMovieById: ${e.message}")
             null
         }
     }
 
 
+}
+
+fun extractStringOrLocalized(value: Any?): Map<String, String> {
+    return when (value) {
+        is String -> mapOf("default" to value) // Si era string simple
+        is Map<*, *> -> value.mapNotNull {
+            val key = it.key as? String
+            val v = it.value as? String
+            if (key != null && v != null) key to v else null
+        }.toMap()
+        else -> emptyMap()
+    }
+}
+
+fun documentToMovie(doc: Map<String, Any?>, id: String): Movie {
+    return Movie(
+        id = id,
+        title = extractStringOrLocalized(doc["title"]),
+        description = extractStringOrLocalized(doc["description"]),
+        imageUrl = doc["imageUrl"] as? String ?: "",
+        category = doc["category"] as? String ?: "",
+        isFeatured = doc["isFeatured"] as? Boolean ?: false,
+        genres = (doc["genres"] as? List<*>)?.filterIsInstance<String>() ?: emptyList(),
+        type = doc["type"] as? String ?: "",
+        actors = (doc["actors"] as? List<*>)?.filterIsInstance<String>() ?: emptyList(),
+        rating = (doc["rating"] as? Number)?.toInt() ?: 0
+    )
 }

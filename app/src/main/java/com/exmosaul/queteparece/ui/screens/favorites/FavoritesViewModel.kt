@@ -3,9 +3,10 @@ package com.exmosaul.queteparece.ui.screens.favorites
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.exmosaul.queteparece.data.auth.documentToMovie
+import com.exmosaul.queteparece.data.model.Movie
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.exmosaul.queteparece.data.model.Movie
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -35,16 +36,14 @@ class FavoritesViewModel : ViewModel() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
 
-            // Load favorites IDs
-            println("A")
             val userDoc = db.collection("users").document(user.uid).get().await()
-            println(userDoc)
             val favoriteIds = userDoc.get("favorites") as? List<String> ?: emptyList()
-            println(favoriteIds)
 
             val movies = if (favoriteIds.isNotEmpty()) {
                 db.collection("movies").whereIn("__name__", favoriteIds).get().await()
-                    .documents.mapNotNull { it.toObject(Movie::class.java)?.copy(id = it.id) }
+                    .documents.map { doc ->
+                        documentToMovie(doc.data ?: emptyMap<String, Any?>(), doc.id)
+                    }
             } else emptyList()
 
             _uiState.value = FavoritesUiState(

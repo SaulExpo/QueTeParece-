@@ -13,19 +13,23 @@ class AuthRepository(
     val currentUser: FirebaseUser? get() = auth.currentUser
 
     suspend fun signIn(email: String, password: String): FirebaseUser? {
-        println("_______________________")
-        println(auth)
         auth.signInWithEmailAndPassword(email.trim(), password).await()
-        println(auth.currentUser)
-        println("_______________________")
-        return auth.currentUser
+        val user = auth.currentUser
+
+        // Si el usuario existe pero NO está verificado → impedir acceso
+        if (user != null && !user.isEmailVerified) {
+            auth.signOut()
+            throw Exception("EMAIL_NOT_VERIFIED")
+        }
+
+        return user
     }
 
-    suspend fun signUp(name: String, username: String, email: String, password: String): FirebaseUser? {
+    suspend fun signUp(name: String, username: String, email: String, password: String): Boolean {
         val result = auth.createUserWithEmailAndPassword(email.trim(), password).await()
-        val firebaseUser = result.user ?: return null
+        val firebaseUser = result.user ?: return false
 
-        val user = User(
+        val newUser = User(
             uid = firebaseUser.uid,
             name = name.trim(),
             username = username.trim(),
@@ -37,9 +41,12 @@ class AuthRepository(
             favorites = emptyList(),
         )
 
-        db.collection("users").document(firebaseUser.uid).set(user).await()
-        return firebaseUser
-    }
+        db.collection("users").document(firebaseUser.uid).set(newUser).await()
 
-    fun signOut() { auth.signOut() }
+        firebaseUser.sendEmailVerification().await()
+
+        auth.signOut()
+
+        return true
+    }
 }

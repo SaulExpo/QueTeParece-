@@ -1,9 +1,19 @@
 package com.exmosaul.queteparece.ui.screens.detail
 
-import androidx.compose.foundation.Image
+import LanguageManager
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -11,11 +21,36 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.StarHalf
+import androidx.compose.material.icons.outlined.StarBorder
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -23,6 +58,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
@@ -31,15 +67,10 @@ import com.exmosaul.queteparece.R
 import com.exmosaul.queteparece.data.auth.MovieRepository
 import com.exmosaul.queteparece.data.model.Movie
 import com.exmosaul.queteparece.ui.navigation.BottomNavBar
-import com.exmosaul.queteparece.ui.screens.profile.removeFriend
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.StarHalf
-import androidx.compose.material.icons.outlined.Star
-import androidx.compose.material.icons.outlined.StarBorder
 
 
 @Composable
@@ -57,8 +88,9 @@ fun MovieDetailScreen(
     var username by remember { mutableStateOf<String?>(null) }
     var imageUrl by remember { mutableStateOf<String?>(null) }
     var showRatingSheet by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
-
+    val language by LanguageManager.language.collectAsState()
 
     LaunchedEffect(user?.uid) {
         val uid = auth.currentUser?.uid ?: return@LaunchedEffect
@@ -77,6 +109,16 @@ fun MovieDetailScreen(
         }
     } else {
         Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text("") },
+                    navigationIcon = {
+                        IconButton(onClick = { navController.popBackStack() }) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
+                        }
+                    }
+                )
+            },
             bottomBar = { BottomNavBar(navController) },
             containerColor = MaterialTheme.colorScheme.background,
 
@@ -89,15 +131,14 @@ fun MovieDetailScreen(
 
                 val movie = uiState.movie
                 movie?.let {
+                    val localizedTitle = it.title[language] ?: it.title["es"] ?: ""
+                    val localizedDescription = it.description[language] ?: it.description["es"] ?: ""
                     Column(
                         modifier = Modifier
                             .padding(innerPadding)
                             .verticalScroll(rememberScrollState())
                             .padding(16.dp)
                     ) {
-                        /*Button(onClick = { viewModel.runActorMovieSync() }) {
-                            Text("Sincronizar actores y películas")
-                        }*/
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth(),
@@ -116,7 +157,7 @@ fun MovieDetailScreen(
                         Row(verticalAlignment = Alignment.Top) {
                             AsyncImage(
                                 model = movie.imageUrl,
-                                contentDescription = movie.title,
+                                contentDescription = localizedTitle,
                                 modifier = Modifier
                                     .width(140.dp)
                                     .height(220.dp)
@@ -126,12 +167,12 @@ fun MovieDetailScreen(
                             Spacer(Modifier.width(16.dp))
                             Column {
                                 Text(
-                                    movie.title,
+                                    localizedTitle,
                                     style = MaterialTheme.typography.titleLarge,
                                     color = MaterialTheme.colorScheme.primary
                                 )
                                 Text(
-                                    movie.description,
+                                    localizedDescription,
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onBackground
                                 )
@@ -139,7 +180,7 @@ fun MovieDetailScreen(
                         }
                         Column {
                             Text(
-                                "Valoración",
+                                stringResource(R.string.rating_title),
                                 style = MaterialTheme.typography.titleLarge,
                                 color = MaterialTheme.colorScheme.primary
                             )
@@ -147,7 +188,7 @@ fun MovieDetailScreen(
                                 RatingStars(movie.rating.toDouble())
 
                                 TextButton(onClick = { showRatingSheet = true }) {
-                                    Text("Valorar")
+                                    Text(stringResource(R.string.rate_button))
                                 }
                             }
                         }
@@ -165,21 +206,20 @@ fun MovieDetailScreen(
 
                         Spacer(Modifier.height(24.dp))
                         Text(
-                            "Reparto",
+                            stringResource(R.string.cast_title),
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.primary
                         )
 
                         LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                             items(uiState.actors) { actor ->
-                                print(actor)
                                 Column(horizontalAlignment = Alignment.CenterHorizontally,
                                     modifier = Modifier
                                         .clickable { navController.navigate("actorDetail/${actor.id}") }
                                 ) {
                                     Box(
                                         modifier = Modifier
-                                            .size(90.dp) // tamaño fijo garantizado
+                                            .size(90.dp)
                                             .clip(RoundedCornerShape(12.dp))
                                     ) {
                                         AsyncImage(
@@ -208,12 +248,10 @@ fun MovieDetailScreen(
 
                         Spacer(Modifier.height(24.dp))
                         Text(
-                            "Reviews",
+                            stringResource(R.string.reviews_title),
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.primary
                         )
-
-                        // Área para nueva reseña
                         Row(verticalAlignment = Alignment.Top) {
                             AsyncImage(
                                 model = imageUrl,
@@ -228,7 +266,7 @@ fun MovieDetailScreen(
                             OutlinedTextField(
                                 value = uiState.reviewText,
                                 onValueChange = viewModel::onReviewTextChange,
-                                placeholder = { Text("Añadir review") },
+                                placeholder = { Text(stringResource(R.string.add_review_placeholder)) },
                                 modifier = Modifier.weight(1f)
                             )
                             Spacer(Modifier.width(8.dp))
@@ -237,13 +275,11 @@ fun MovieDetailScreen(
                                     viewModel.submitReview(movie.id)
                                 }
                             }) {
-                                Text("Enviar")
+                                Text(stringResource(R.string.send))
                             }
                         }
 
                         Spacer(Modifier.height(16.dp))
-
-                        // Reviews
                         uiState.reviews.forEach { review ->
                             Card(
                                 modifier = Modifier
@@ -251,51 +287,91 @@ fun MovieDetailScreen(
                                     .padding(vertical = 6.dp),
                                 shape = RoundedCornerShape(12.dp)
                             ) {
-                                Column(Modifier.padding(12.dp)) {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        AsyncImage(
-                                            model = review.userPhoto,
-                                            contentDescription = "Foto de perfil",
+                                Box{
+                                    Column(Modifier.padding(12.dp)) {
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            AsyncImage(
+                                                model = review.userPhoto,
+                                                contentDescription = "Foto de perfil",
+                                                modifier = Modifier
+                                                    .size(32.dp)
+                                                    .clip(CircleShape)
+                                                    .background(MaterialTheme.colorScheme.primaryContainer),
+                                                contentScale = ContentScale.Crop
+                                            )
+                                            Spacer(Modifier.width(8.dp))
+                                            Text(
+                                                review.username ?: "Usuario",
+                                                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                                            )
+                                        }
+                                        Spacer(Modifier.height(6.dp))
+                                        Text(review.text)
+                                        Spacer(Modifier.height(8.dp))
+                                        Row(
+                                            horizontalArrangement = Arrangement.spacedBy(16.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            ReviewVoteButton(
+                                                isSelected = review.likedBy.contains(user?.uid),
+                                                emoji = "👍",
+                                                count = review.likes,
+                                                onClick = {
+                                                    viewModel.toggleReviewVote(movie.id, review.id, isLike = true)
+                                                }
+                                            )
+
+                                            ReviewVoteButton(
+                                                isSelected = review.dislikedBy.contains(user?.uid),
+                                                emoji = "👎",
+                                                count = review.dislikes,
+                                                onClick = {
+                                                    viewModel.toggleReviewVote(movie.id, review.id, isLike = false)
+                                                }
+                                            )
+                                        }
+
+                                    }
+                                    if (review.userId == user?.uid) {
+                                        IconButton(
+                                            onClick = {
+                                                showDeleteDialog = review.id
+                                            },
                                             modifier = Modifier
-                                                .size(32.dp)
-                                                .clip(CircleShape)
-                                                .background(MaterialTheme.colorScheme.primaryContainer),
-                                            contentScale = ContentScale.Crop
-                                        )
-                                        Spacer(Modifier.width(8.dp))
-                                        Text(
-                                            review.username ?: "Usuario",
-                                            fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
-                                        )
+                                                .align(Alignment.BottomEnd)
+                                                .padding(6.dp)
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Filled.Delete,
+                                                contentDescription = stringResource(R.string.delete_review),
+                                                tint = Color.Red
+                                            )
+                                        }
                                     }
-                                    Spacer(Modifier.height(6.dp))
-                                    Text(review.text)
-                                    Spacer(Modifier.height(8.dp))
-                                    Row(
-                                        horizontalArrangement = Arrangement.spacedBy(16.dp),
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        ReviewVoteButton(
-                                            isSelected = review.likedBy.contains(user?.uid),
-                                            emoji = "👍",
-                                            count = review.likes,
-                                            onClick = {
-                                                viewModel.toggleReviewVote(movie.id, review.id, isLike = true)
-                                            }
-                                        )
-
-                                        ReviewVoteButton(
-                                            isSelected = review.dislikedBy.contains(user?.uid),
-                                            emoji = "👎",
-                                            count = review.dislikes,
-                                            onClick = {
-                                                viewModel.toggleReviewVote(movie.id, review.id, isLike = false)
-                                            }
-                                        )
-                                    }
-
                                 }
                             }
+                        }
+                        if (showDeleteDialog != null) {
+                            AlertDialog(
+                                onDismissRequest = { showDeleteDialog = null },
+                                confirmButton = {
+                                    TextButton(
+                                        onClick = {
+                                            viewModel.deleteReview(movie.id, showDeleteDialog!!)
+                                            showDeleteDialog = null
+                                        }
+                                    ) {
+                                        Text(stringResource(R.string.yes_delete), color = MaterialTheme.colorScheme.error)
+                                    }
+                                },
+                                dismissButton = {
+                                    TextButton(onClick = { showDeleteDialog = null }) {
+                                        Text(stringResource(R.string.cancel))
+                                    }
+                                },
+                                title = { Text(stringResource(R.string.delete_review)) },
+                                text = { Text(stringResource(R.string.delete_review_confirm)) }
+                            )
                         }
                     }
                 }
@@ -307,8 +383,8 @@ fun MovieDetailScreen(
 
 @Composable
 fun RatingStars(rating: Double) {
-    val filledStars = (rating / 2).toInt()             // estrellas completas
-    val hasHalfStar = (rating % 2) >= 1                // media estrella si sobra 1 punto
+    val filledStars = (rating / 2).toInt()
+    val hasHalfStar = (rating % 2) >= 1
     val emptyStars = 5 - filledStars - if (hasHalfStar) 1 else 0
 
     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -316,7 +392,7 @@ fun RatingStars(rating: Double) {
             Icon(
                 Icons.Filled.Star,
                 contentDescription = null,
-                tint = Color(0xFFFFD700), // Dorado
+                tint = Color(0xFFFFD700),
                 modifier = Modifier.size(22.dp)
             )
         }
@@ -373,8 +449,6 @@ fun RatingSheet(
         )
 
         Spacer(Modifier.height(12.dp))
-
-        // ⭐ ESTRELLAS DEL 1 AL 10 ⭐
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Center
@@ -395,7 +469,6 @@ fun RatingSheet(
 
         Spacer(Modifier.height(12.dp))
 
-        // Nota numérica
         Text(
             "${selectedRating}/10",
             style = MaterialTheme.typography.headlineMedium,

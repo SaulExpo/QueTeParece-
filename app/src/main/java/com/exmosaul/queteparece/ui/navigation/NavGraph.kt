@@ -15,21 +15,20 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.exmosaul.queteparece.ui.screens.auth.AuthScreen
-import com.exmosaul.queteparece.ui.screens.home.HomeScreen
-import com.exmosaul.queteparece.ui.screens.search.SearchScreen
-import androidx.compose.runtime.getValue
-import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import com.exmosaul.queteparece.ui.screens.actor.ActorDetailScreen
+import com.exmosaul.queteparece.ui.screens.auth.AuthScreen
 import com.exmosaul.queteparece.ui.screens.detail.MovieDetailScreen
+import com.exmosaul.queteparece.ui.screens.home.HomeScreen
 import com.exmosaul.queteparece.ui.screens.home.MovieListScreen
 import com.exmosaul.queteparece.ui.screens.profile.EditProfileScreen
 import com.exmosaul.queteparece.ui.screens.profile.EditRecommendationsScreen
@@ -37,6 +36,7 @@ import com.exmosaul.queteparece.ui.screens.profile.FriendProfileScreen
 import com.exmosaul.queteparece.ui.screens.profile.FriendRequestsScreen
 import com.exmosaul.queteparece.ui.screens.profile.ProfileScreen
 import com.exmosaul.queteparece.ui.screens.profile.SearchFriendsScreen
+import com.exmosaul.queteparece.ui.screens.search.SearchScreen
 import com.google.firebase.auth.FirebaseAuth
 
 
@@ -180,4 +180,3 @@ data class BottomNavItem(
     val icon: androidx.compose.ui.graphics.vector.ImageVector,
     val route: String
 )
-

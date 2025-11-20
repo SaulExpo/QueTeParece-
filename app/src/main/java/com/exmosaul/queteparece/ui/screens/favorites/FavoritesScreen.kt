@@ -12,8 +12,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -22,47 +28,42 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
-import com.exmosaul.queteparece.R
-import com.exmosaul.queteparece.ui.navigation.BottomNavBar
-import com.exmosaul.queteparece.ui.screens.favorites.FavoritesViewModel
-import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material3.IconButton
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.exmosaul.queteparece.R
 import com.exmosaul.queteparece.data.model.Movie
+import com.exmosaul.queteparece.ui.navigation.BottomNavBar
+import com.exmosaul.queteparece.ui.screens.favorites.FavoritesViewModel
 
 @Composable
 fun FavoritesScreen(navController: NavController, viewModel: FavoritesViewModel = viewModel()) {
     val uiState by viewModel.uiState.collectAsState()
+    val language by LanguageManager.language.collectAsState()
 
     Scaffold(
         bottomBar = { BottomNavBar(navController) },
         containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
 
-        Column(modifier = Modifier
-            .fillMaxSize()
-            .padding(padding)) {
-
-            // 🔹 Logo arriba a la derecha
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+        ) {
             Box(
-                modifier = Modifier
-                    .fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth(),
                 contentAlignment = Alignment.TopEnd
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_clapper_placeholder),
-                    contentDescription = "Logo",
+                    contentDescription = stringResource(R.string.logo_desc),
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier
                         .padding(16.dp)
@@ -70,9 +71,8 @@ fun FavoritesScreen(navController: NavController, viewModel: FavoritesViewModel 
                 )
             }
 
-            // 🔹 Título principal
             Text(
-                text = "Películas Favoritas",
+                text = stringResource(R.string.favorites_title),
                 style = MaterialTheme.typography.headlineSmall,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier
@@ -91,7 +91,7 @@ fun FavoritesScreen(navController: NavController, viewModel: FavoritesViewModel 
                 uiState.movies.isEmpty() -> {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Text(
-                            "No tienes películas en favoritos todavía.",
+                            stringResource(R.string.favorites_empty),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
                         )
@@ -106,9 +106,15 @@ fun FavoritesScreen(navController: NavController, viewModel: FavoritesViewModel 
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         items(uiState.movies) { movie ->
+
+                            // 🔹 Seleccionar título según idioma
+                            val localizedTitle =
+                                movie.title[language] ?: movie.title["es"] ?: ""
+
                             MovieFavoriteCard(
                                 movie = movie,
                                 isFavorite = uiState.favorites.contains(movie.id),
+                                localizedTitle = localizedTitle,
                                 onFavoriteClick = { viewModel.toggleFavorite(movie.id) },
                                 onClick = { navController.navigate("movieDetail/${movie.id}") }
                             )
@@ -124,6 +130,7 @@ fun FavoritesScreen(navController: NavController, viewModel: FavoritesViewModel 
 fun MovieFavoriteCard(
     movie: Movie,
     isFavorite: Boolean,
+    localizedTitle: String,
     onFavoriteClick: () -> Unit,
     onClick: () -> Unit
 ) {
@@ -134,10 +141,10 @@ fun MovieFavoriteCard(
     ) {
         AsyncImage(
             model = movie.imageUrl,
-            contentDescription = movie.title,
+            contentDescription = localizedTitle,
             modifier = Modifier
                 .fillMaxWidth()
-                .aspectRatio(0.7f) // 📐 Mantiene proporción bonita
+                .aspectRatio(0.7f)
                 .clip(RoundedCornerShape(12.dp)),
             contentScale = ContentScale.Crop
         )
@@ -151,7 +158,7 @@ fun MovieFavoriteCard(
         ) {
             Icon(
                 imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-                contentDescription = "Fav",
+                contentDescription = stringResource(R.string.favorite_button),
                 tint = if (isFavorite) Color.Red else MaterialTheme.colorScheme.primary
             )
         }

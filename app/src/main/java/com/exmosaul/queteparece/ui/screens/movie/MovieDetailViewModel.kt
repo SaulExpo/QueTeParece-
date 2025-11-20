@@ -2,6 +2,7 @@ package com.exmosaul.queteparece.ui.screens.detail
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.exmosaul.queteparece.data.auth.documentToMovie
 import com.exmosaul.queteparece.data.model.Actor
 import com.exmosaul.queteparece.data.model.Movie
 import com.google.firebase.auth.FirebaseAuth
@@ -36,7 +37,9 @@ data class MovieDetailUiState(
     val isLoading: Boolean = false,
     val reviewText: String = "",
     val error: String? = null,
-    val userRating: Int? = null
+    val userRating: Int? = null,
+    val translatedTitle: String? = null,
+    val translatedDescription: String? = null
 )
 
 class MovieDetailViewModel : ViewModel() {
@@ -52,7 +55,10 @@ class MovieDetailViewModel : ViewModel() {
 
             try {
                 val movieDoc = db.collection("movies").document(movieId).get().await()
-                val movie = movieDoc.toObject(Movie::class.java)?.copy(id = movieId)
+                val data = movieDoc.data
+                val movie = if (data != null) {
+                    documentToMovie(data, movieId)
+                } else null
                 val user = auth.currentUser ?: return@launch
 
                 val userRatingDoc = db.collection("movies")
@@ -63,13 +69,11 @@ class MovieDetailViewModel : ViewModel() {
 
                 val userRating = userRatingDoc.getLong("rating")?.toInt()
 
-                // Guardamos la película en UI
                 _uiState.value = _uiState.value.copy(
                     movie = movie,
                     userRating = userRating
                 )
 
-                // ✅ Si la peli tiene reparto → cargamos actores
                 movie?.actors.let { actor ->
                     actor?.let { loadActors(it) }
                 }
@@ -92,14 +96,13 @@ class MovieDetailViewModel : ViewModel() {
                 for (actorId in actorIds) {
                     val doc = db.collection("actors").document(actorId).get().await()
                     doc.toObject(Actor::class.java)?.let { actor ->
-                        actorsList.add(actor.copy(id = doc.id)) // ✅ ahora el actor tiene id real
+                        actorsList.add(actor.copy(id = doc.id))
                     }
                 }
 
                 _uiState.value = _uiState.value.copy(actors = actorsList)
 
             } catch (e: Exception) {
-                println("❌ Error cargando actores: ${e.message}")
             }
         }
     }
@@ -140,18 +143,6 @@ class MovieDetailViewModel : ViewModel() {
                 .set(review)
             _uiState.value = _uiState.value.copy(reviewText = "")
             loadReviews(movieId)
-        }
-    }
-
-    fun runActorMovieSync() {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                addMoviesToActors()
-                println("✅ Sincronización completada correctamente")
-            } catch (e: Exception) {
-                println("❌ Error: ${e.message}")
-                e.printStackTrace()
-            }
         }
     }
 
@@ -196,13 +187,11 @@ class MovieDetailViewModel : ViewModel() {
                 .collection("ratings")
                 .document(user.uid)
 
-            // Guardar nota del usuario
             userDoc.set(mapOf(
                 "rating" to rating,
                 "timestamp" to System.currentTimeMillis()
             )).await()
 
-            // Recalcular promedio
             val ratingsSnapshot = db.collection("movies")
                 .document(movieId)
                 .collection("ratings")
@@ -218,7 +207,25 @@ class MovieDetailViewModel : ViewModel() {
                     "ratingCount", ratings.size
                 )
 
-            loadMovie(movieId) // refrescar UI
+            loadMovie(movieId)
+        }
+    }
+
+    fun deleteReview(movieId: String, reviewId: String) {
+        viewModelScope.launch {
+            try {
+                db.collection("movies")
+                    .document(movieId)
+                    .collection("reviews")
+                    .document(reviewId)
+                    .delete()
+                    .await()
+
+                loadReviews(movieId)
+
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(error = "Error eliminando reseña: ${e.message}")
+            }
         }
     }
 
@@ -247,14 +254,12 @@ class MovieDetailViewModel : ViewModel() {
                 if (isLike) {
                     when {
                         alreadyLiked -> {
-                            // ❌ Quitar like
                             transaction.update(reviewRef, mapOf(
                                 "likes" to newLikes - 1,
                                 "likedBy" to FieldValue.arrayRemove(uid)
                             ))
                         }
                         alreadyDisliked -> {
-                            // 👍 Cambiar dislike → like
                             transaction.update(reviewRef, mapOf(
                                 "likes" to newLikes + 1,
                                 "dislikes" to newDislikes - 1,
@@ -263,7 +268,6 @@ class MovieDetailViewModel : ViewModel() {
                             ))
                         }
                         else -> {
-                            // 👍 Dar like
                             transaction.update(reviewRef, mapOf(
                                 "likes" to newLikes + 1,
                                 "likedBy" to FieldValue.arrayUnion(uid)
@@ -273,14 +277,12 @@ class MovieDetailViewModel : ViewModel() {
                 } else {
                     when {
                         alreadyDisliked -> {
-                            // ❌ Quitar dislike
                             transaction.update(reviewRef, mapOf(
                                 "dislikes" to newDislikes - 1,
                                 "dislikedBy" to FieldValue.arrayRemove(uid)
                             ))
                         }
                         alreadyLiked -> {
-                            // 👎 Cambiar like → dislike
                             transaction.update(reviewRef, mapOf(
                                 "likes" to newLikes - 1,
                                 "dislikes" to newDislikes + 1,
@@ -289,7 +291,6 @@ class MovieDetailViewModel : ViewModel() {
                             ))
                         }
                         else -> {
-                            // 👎 Dar dislike
                             transaction.update(reviewRef, mapOf(
                                 "dislikes" to newDislikes + 1,
                                 "dislikedBy" to FieldValue.arrayUnion(uid)
@@ -299,41 +300,8 @@ class MovieDetailViewModel : ViewModel() {
                 }
             }.await()
 
-            // Volver a cargar reviews
             loadMovie(movieId)
         }
     }
-
-
 }
 
-private fun capitalizeName(text: String): String {
-    return text.replaceFirstChar { it.uppercase() }
-}
-
-suspend fun addMoviesToActors() {
-    val db = FirebaseFirestore.getInstance()
-
-    val moviesSnapshot = db.collection("movies").get().await()
-
-    val actorToMovies = mutableMapOf<String, MutableList<String>>()
-
-    for (doc in moviesSnapshot.documents) {
-        val movieId = doc.id
-        val actors = doc.get("actors") as? List<String> ?: emptyList()
-
-        for (actorId in actors) {
-            actorToMovies.getOrPut(actorId) { mutableListOf() }.add(movieId)
-        }
-    }
-
-    val batch = db.batch()
-
-    actorToMovies.forEach { (actorId, movieList) ->
-        val actorRef = db.collection("actors").document(actorId)
-        // Si el doc no existe aún, lo crea
-        batch.set(actorRef, mapOf("movies" to movieList), SetOptions.merge())
-    }
-
-    batch.commit().await()
-}

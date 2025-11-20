@@ -2,16 +2,14 @@ package com.exmosaul.queteparece.data.auth
 
 import com.exmosaul.queteparece.data.model.Actor
 import com.exmosaul.queteparece.data.model.Movie
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
-
-import com.google.firebase.firestore.FirebaseFirestore;
 
 class ActorRepository(
     private val db:FirebaseFirestore= FirebaseFirestore.getInstance()
 ) {
     suspend fun getActorById(actorId: String): Actor? {
         val doc = db.collection("actors").document(actorId).get().await()
-        print(doc.id)
         return doc.toObject(Actor::class.java)?.copy(id = doc.id)
     }
 
@@ -22,7 +20,8 @@ class ActorRepository(
             .await()
 
         return snapshot.documents.mapNotNull { doc ->
-            doc.toObject(Movie::class.java)?.copy(id = doc.id)
+            val data = doc.data ?: return@mapNotNull null
+            documentToMovie(data, doc.id)
         }
     }
 }

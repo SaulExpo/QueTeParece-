@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -5,6 +7,15 @@ plugins {
     id("com.google.gms.google-services")
     id("org.sonarqube") version "4.4.1.3373"
 }
+
+val localProps = Properties()
+val localPropsFile = rootProject.file("local.properties")
+if (localPropsFile.exists()) {
+    localProps.load(localPropsFile.inputStream())
+}
+
+val openAIKey = localProps.getProperty("OPENAI_API_KEY") ?: ""
+println("🔥 OPENAI KEY: $openAIKey")
 
 android {
     namespace = "com.exmosaul.queteparece"
@@ -16,6 +27,12 @@ android {
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
+
+        buildConfigField(
+            "String",
+            "OPENAI_KEY",
+            "\"$openAIKey\""
+        )
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -45,6 +62,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -80,4 +98,8 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:4.11.0")
     implementation("org.json:json:20231013")
 
+    implementation("com.squareup.retrofit2:retrofit:2.11.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.11.0")
+
+    implementation("androidx.datastore:datastore-preferences:1.1.1")
 }

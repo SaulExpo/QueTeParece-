@@ -3,8 +3,8 @@ package com.exmosaul.queteparece.ui.screens.actor
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.exmosaul.queteparece.data.auth.ActorRepository
-import com.exmosaul.queteparece.data.model.Movie
 import com.exmosaul.queteparece.data.model.Actor
+import com.exmosaul.queteparece.data.model.Movie
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch

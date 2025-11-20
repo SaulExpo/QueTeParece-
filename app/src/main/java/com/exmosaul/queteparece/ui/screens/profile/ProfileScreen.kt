@@ -1,7 +1,21 @@
 package com.exmosaul.queteparece.ui.screens.profile
 
+import LanguageManager
+import android.app.Activity
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -10,26 +24,50 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Group
-import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.MailOutline
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.PersonAdd
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.exmosaul.queteparece.R
+import com.exmosaul.queteparece.data.auth.documentToMovie
 import com.exmosaul.queteparece.data.model.Movie
 import com.exmosaul.queteparece.ui.navigation.BottomNavBar
 import com.exmosaul.queteparece.ui.navigation.Routes
 import com.exmosaul.queteparece.ui.screens.detail.Review
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldPath
-import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
@@ -62,12 +100,13 @@ fun ProfileScreen(navController: NavController) {
 
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showFriendsSheet by remember { mutableStateOf(false) }
+    val language by LanguageManager.language.collectAsState()
+
 
     LaunchedEffect(user?.uid) {
         val uid = auth.currentUser?.uid ?: return@LaunchedEffect
 
         try {
-            // 1) Obtener datos del usuario
             val doc = db.collection("users").document(uid).get().await()
 
             username = doc.getString("username")
@@ -76,57 +115,52 @@ fun ProfileScreen(navController: NavController) {
             val friendIds = doc.get("friends") as? List<String> ?: emptyList()
             friendsCount = friendIds.size
 
-            // 2) Obtener detalles de los amigos
             friendsList = friendIds.mapNotNull { friendId ->
                 val friend = db.collection("users").document(friendId).get().await()
-                val friendUid = friend.getString("uid") ?: "Usuario"
-                val friendName = friend.getString("username") ?: "Usuario"
-                val friendPhoto = friend.getString("photoUrl") ?: ""
-                Friend(friendUid, friendName, friendPhoto)
+                Friend(
+                    uid = friend.getString("uid") ?: "",
+                    name = friend.getString("username") ?: "Usuario",
+                    photoUrl = friend.getString("photoUrl") ?: ""
+                )
             }
+
             recommendedMovies = doc.get("recommendedMovies") as? List<String> ?: emptyList()
 
             if (recommendedMovies.isNotEmpty()) {
                 recommendedMovieObjects = recommendedMovies.mapNotNull { movieId ->
                     val movieDoc = db.collection("movies").document(movieId).get().await()
-                    movieDoc.toObject(Movie::class.java)?.copy(id = movieDoc.id)
+                    val data = movieDoc.data
+                    if (data != null) documentToMovie(data, movieDoc.id) else null
                 }
             }
-            val moviesSnapshot = db.collection("movies").get().await()
-            try {
-                val reviewsSnapshot = db.collectionGroup("reviews")
-                    .whereEqualTo("userId", currentUid)
-                    .get()
-                    .await()
 
-                val reviews = reviewsSnapshot.documents.mapNotNull { doc ->
-                    val review = doc.toObject(Review::class.java) ?: return@mapNotNull null
-                    review
-                }
+            val reviewsSnapshot = db.collectionGroup("reviews")
+                .whereEqualTo("userId", currentUid)
+                .get()
+                .await()
 
-                // Cargar películas (en lote)
-                val movieIds = reviews.map { it.movieId }.distinct()
-                val moviesSnapshot = db.collection("movies")
-                    .whereIn(FieldPath.documentId(), movieIds.take(10)) // Firestore permite máx 10 por whereIn
-                    .get()
-                    .await()
+            val reviews = reviewsSnapshot.documents.mapNotNull { doc ->
+                doc.toObject(Review::class.java)
+            }
 
-                val movies = moviesSnapshot.documents.mapNotNull { doc ->
-                    doc.toObject(Movie::class.java)?.copy(id = doc.id)
-                }
+            val movieIds = reviews.map { it.movieId }.distinct()
 
-                // Relacionar movie con review
-                userReviews = reviews.mapNotNull { review ->
-                    val movie = movies.find { it.id == review.movieId } ?: return@mapNotNull null
-                    movie to review
-                }
+            val moviesSnapshot = db.collection("movies")
+                .whereIn(FieldPath.documentId(), movieIds.take(10))
+                .get()
+                .await()
 
-            } catch (e: Exception) {
-                println("❌ Error cargando reseñas: ${e.message}")
+            val movies = moviesSnapshot.documents.mapNotNull { doc ->
+                val data = doc.data
+                if (data != null) documentToMovie(data, doc.id) else null
+            }
+
+            userReviews = reviews.mapNotNull { review ->
+                val movie = movies.find { it.id == review.movieId } ?: return@mapNotNull null
+                movie to review
             }
 
         } catch (e: Exception) {
-            println("❌ Error cargando perfil y amigos: ${e.message}")
         }
     }
 
@@ -204,13 +238,78 @@ fun ProfileScreen(navController: NavController) {
                                 )
                                 Spacer(Modifier.width(4.dp))
                                 Text(
-                                    "Editar",
+                                    stringResource(R.string.edit),
                                     style = MaterialTheme.typography.bodySmall
                                 )
                             }
                         }
                     }
 
+                }
+            }
+            item {
+                Text(
+                    stringResource(R.string.language),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+
+                Spacer(Modifier.height(8.dp))
+
+                var expanded by remember { mutableStateOf(false) }
+                val currentLang by LanguageManager.language.collectAsState()
+
+                Box {
+                    OutlinedButton(
+                        onClick = { expanded = true },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Start,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            val flagRes = when (currentLang) {
+                                "es" -> R.drawable.spain
+                                "en" -> R.drawable.uk
+                                "fr" -> R.drawable.france
+                                "de" -> R.drawable.germany
+                                else -> R.drawable.spain
+                            }
+
+                            AsyncImage(
+                                model = flagRes,
+                                contentDescription = "Bandera",
+                                modifier = Modifier.size(28.dp).clip(CircleShape),
+                                contentScale = ContentScale.Crop
+                            )
+
+                            Spacer(Modifier.width(12.dp))
+
+                            Text(
+                                when (currentLang) {
+                                    "es" -> stringResource(R.string.spanish)
+                                    "en" -> stringResource(R.string.english)
+                                    "fr" -> stringResource(R.string.french)
+                                    "de" -> stringResource(R.string.german)
+                                    else -> stringResource(R.string.language)
+                                },
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                        }
+                    }
+
+                    DropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false }
+                    ) {
+
+                        LanguageDropdownItem("es", stringResource(R.string.spanish), R.drawable.spain) { expanded = false }
+                        LanguageDropdownItem("en", stringResource(R.string.english), R.drawable.uk) { expanded = false }
+                        LanguageDropdownItem("fr", stringResource(R.string.french), R.drawable.france) { expanded = false }
+                        LanguageDropdownItem("de", stringResource(R.string.german), R.drawable.germany) { expanded = false }
+                    }
                 }
             }
             item {
@@ -221,7 +320,6 @@ fun ProfileScreen(navController: NavController) {
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // 🔹 Amigos
                     Card(
                         modifier = Modifier
                             .weight(1f)
@@ -240,7 +338,7 @@ fun ProfileScreen(navController: NavController) {
                         ) {
                             Icon(
                                 Icons.Filled.Group,
-                                contentDescription = "Amigos",
+                                contentDescription = stringResource(R.string.friends),
                                 tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(28.dp)
                             )
@@ -251,14 +349,13 @@ fun ProfileScreen(navController: NavController) {
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
-                                "Amigos",
+                                stringResource(R.string.friends),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
 
-                    // 🔹 Buscar amigos
                     Card(
                         modifier = Modifier
                             .weight(1f)
@@ -277,20 +374,19 @@ fun ProfileScreen(navController: NavController) {
                         ) {
                             Icon(
                                 Icons.Filled.PersonAdd,
-                                contentDescription = "Buscar amigos",
+                                contentDescription = stringResource(R.string.search_friends),
                                 tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(28.dp)
                             )
                             Spacer(Modifier.height(4.dp))
                             Text(
-                                "Buscar",
+                                stringResource(R.string.search),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
 
-                    // 🔹 Solicitudes pendientes
                     Card(
                         modifier = Modifier
                             .weight(1f)
@@ -309,13 +405,13 @@ fun ProfileScreen(navController: NavController) {
                         ) {
                             Icon(
                                 Icons.Filled.MailOutline,
-                                contentDescription = "Solicitudes pendientes",
+                                contentDescription = stringResource(R.string.requests),
                                 tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(28.dp)
                             )
                             Spacer(Modifier.height(4.dp))
                             Text(
-                                "Solicitudes",
+                                stringResource(R.string.requests),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -329,14 +425,14 @@ fun ProfileScreen(navController: NavController) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        "Recomendaciones",
+                        stringResource(R.string.recommendations),
                         style = MaterialTheme.typography.titleLarge,
                         color = MaterialTheme.colorScheme.onBackground
                     )
                     Spacer(Modifier.weight(1f))
 
                     TextButton(onClick = { navController.navigate(Routes.EditRecommendations.route) }) {
-                        Text("Editar")
+                        Text(stringResource(R.string.edit))
                     }
                 }
 
@@ -344,7 +440,7 @@ fun ProfileScreen(navController: NavController) {
 
                 if (recommendedMovieObjects.isEmpty()) {
                     Text(
-                        "No has recomendado ninguna película aún.",
+                        stringResource(R.string.no_recommendations),
                         color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
                         style = MaterialTheme.typography.bodyMedium
                     )
@@ -353,7 +449,7 @@ fun ProfileScreen(navController: NavController) {
                         items(recommendedMovieObjects) { movie ->
                             AsyncImage(
                                 model = movie.imageUrl,
-                                contentDescription = movie.title,
+                                contentDescription = movie.title[language] ?: movie.title["es"].orEmpty(),
                                 modifier = Modifier
                                     .width(110.dp)
                                     .height(160.dp)
@@ -367,7 +463,7 @@ fun ProfileScreen(navController: NavController) {
             }
             item {
                 Spacer(Modifier.height(24.dp))
-                Text("Reseñas", style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(R.string.reviews_title), style = MaterialTheme.typography.titleMedium)
 
                 Spacer(Modifier.height(12.dp))
 
@@ -375,7 +471,7 @@ fun ProfileScreen(navController: NavController) {
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .heightIn(max = 300.dp) // ✅ Hace la sección scrolleable sin romper layout
+                        .heightIn(max = 300.dp)
                 ) {
                     items(userReviews) { (movie, review) ->
                         ReviewItem(movie, review) {
@@ -393,7 +489,7 @@ fun ProfileScreen(navController: NavController) {
                         contentColor = MaterialTheme.colorScheme.onErrorContainer
                     )
                 ) {
-                    Text("Cerrar sesión")
+                    Text(stringResource(R.string.logout))
                 }
             }
         }
@@ -406,7 +502,7 @@ fun ProfileScreen(navController: NavController) {
             ) {
 
                 Text(
-                    "Amigos",
+                    stringResource(R.string.friends),
                     style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier
@@ -457,16 +553,16 @@ fun ProfileScreen(navController: NavController) {
                         }
                     }
                 ) {
-                    Text("Sí, salir", color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.yes_logout), color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showLogoutDialog = false }) {
-                    Text("Cancelar")
+                    Text(stringResource(R.string.cancel))
                 }
             },
-            title = { Text("Cerrar sesión") },
-            text = { Text("¿Seguro que deseas cerrar tu sesión?") }
+            title = { Text(stringResource(R.string.logout)) },
+            text = { Text(stringResource(R.string.logout_confirm)) }
         )
     }
 }
@@ -504,7 +600,7 @@ fun FriendRow(friend: Friend, onRemove: (String) -> Unit, onOpenProfile: (String
                 contentColor = MaterialTheme.colorScheme.error
             )
         ) {
-            Text("Eliminar")
+            Text(stringResource(R.string.delete))
         }
     }
     if (showDeleteDialog) {
@@ -516,27 +612,18 @@ fun FriendRow(friend: Friend, onRemove: (String) -> Unit, onOpenProfile: (String
                         onRemove(friend.uid)
                     }
                 ) {
-                    Text("Sí, eliminarlo", color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.yes_delete), color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteDialog = false }) {
-                    Text("Cancelar")
+                    Text(stringResource(R.string.cancel))
                 }
             },
-            title = { Text("Eliminar a " + friend.name) },
-            text = { Text("¿Seguro que deseas eliminarlo de amigo?") }
+            title = { Text(stringResource(R.string.delete_friend, friend.name)) },
+            text = { Text(stringResource(R.string.delete_friend_confirm)) }
         )
     }
-}
-
-suspend fun removeFriend(db: FirebaseFirestore, currentUid: String, friendUid: String) {
-    val currentRef = db.collection("users").document(currentUid)
-    val friendRef = db.collection("users").document(friendUid)
-
-    // Eliminar de ambas listas
-    currentRef.update("friends", FieldValue.arrayRemove(friendUid)).await()
-    friendRef.update("friends", FieldValue.arrayRemove(currentUid)).await()
 }
 
 @Composable
@@ -548,9 +635,11 @@ fun ReviewItem(movie: Movie, review: Review, onMovieClick: () -> Unit) {
             .padding(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
+        val language by LanguageManager.language.collectAsState()
+
         AsyncImage(
             model = movie.imageUrl,
-            contentDescription = movie.title,
+            contentDescription = movie.title[language] ?: movie.title["es"].orEmpty(),
             modifier = Modifier
                 .size(60.dp)
                 .clip(RoundedCornerShape(8.dp)),
@@ -560,7 +649,7 @@ fun ReviewItem(movie: Movie, review: Review, onMovieClick: () -> Unit) {
         Spacer(Modifier.width(12.dp))
 
         Column {
-            Text(movie.title, style = MaterialTheme.typography.titleSmall)
+            Text(movie.title[language] ?: movie.title["es"].orEmpty(), style = MaterialTheme.typography.titleSmall)
             Spacer(Modifier.height(4.dp))
             Text(
                 review.text,
@@ -570,4 +659,38 @@ fun ReviewItem(movie: Movie, review: Review, onMovieClick: () -> Unit) {
             )
         }
     }
+}
+@Composable
+fun LanguageDropdownItem(
+    lang: String,
+    label: String,
+    flagRes: Int,
+    onSelect: () -> Unit
+) {
+
+    val context = LocalContext.current
+
+    DropdownMenuItem(
+        text = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                AsyncImage(
+                    model = flagRes,
+                    contentDescription = label,
+                    modifier = Modifier
+                        .size(24.dp)
+                        .clip(CircleShape),
+                    contentScale = ContentScale.Crop
+                )
+                Spacer(Modifier.width(12.dp))
+                Text(label)
+            }
+        },
+        onClick = {
+            LanguageManager.setLanguage(lang)
+            onSelect()
+
+            val activity = context as Activity
+            activity.recreate()
+        }
+    )
 }

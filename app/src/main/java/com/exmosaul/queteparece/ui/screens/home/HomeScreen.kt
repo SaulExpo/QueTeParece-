@@ -1,14 +1,35 @@
 package com.exmosaul.queteparece.ui.screens.home
 
+import LanguageManager
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -17,24 +38,27 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.exmosaul.queteparece.R
-import com.exmosaul.queteparece.data.model.Movie
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.exmosaul.queteparece.R
+import com.exmosaul.queteparece.data.model.Movie
 import com.exmosaul.queteparece.ui.navigation.BottomNavBar
 
 @Composable
 fun HomeScreen(navController: NavController, viewModel: HomeViewModel = viewModel()) {
     val uiState by viewModel.uiState.collectAsState()
+    val language by LanguageManager.language.collectAsState()
 
     Scaffold(
         bottomBar = { BottomNavBar(navController) },
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
+
         if (uiState.isLoading) {
             Box(
                 modifier = Modifier
@@ -52,55 +76,101 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = viewMode
                     .background(MaterialTheme.colorScheme.background),
                 contentPadding = PaddingValues(bottom = 80.dp)
             ) {
-                item { FeaturedMovieSection(movie = uiState.featuredMovie, navController) }
-                item { Section(title = "Novedades destacadas", movies = uiState.novedades, navController) }
-                item { Section(title = "En tendencias", movies = uiState.tendencias, navController) }
-                item { Section(title = "Películas Animadas", movies = uiState.animacion, navController) }
-                item { Section(title = "Películas 'live action'", movies = uiState.liveAction, navController) }
+
+                item { FeaturedMovieSection(uiState.featuredMovie, navController, language) }
+
+                item {
+                    Section(
+                        title = stringResource(R.string.home_section_new),
+                        movies = uiState.novedades,
+                        language = language,
+                        navController = navController,
+                        section = "novedades"
+                    )
+                }
+
+                item {
+                    Section(
+                        title = stringResource(R.string.home_section_trending),
+                        movies = uiState.tendencias,
+                        language = language,
+                        navController = navController,
+                        section = "tendencias"
+                    )
+                }
+
+                item {
+                    Section(
+                        title = stringResource(R.string.home_section_recommended),
+                        movies = uiState.recomendadas,
+                        language = language,
+                        navController = navController,
+                        section = "recomendadas"
+                    )
+                }
+
+                item {
+                    Section(
+                        title = stringResource(R.string.home_section_animation),
+                        movies = uiState.animacion,
+                        language = language,
+                        navController = navController,
+                        section = "animacion"
+                    )
+                }
+
+                item {
+                    Section(
+                        title = stringResource(R.string.home_section_live_action),
+                        movies = uiState.liveAction,
+                        language = language,
+                        navController = navController,
+                        section = "liveAction"
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
-fun FeaturedMovieSection(movie: Movie?, navController: NavController) {
+fun FeaturedMovieSection(movie: Movie?, navController: NavController, language: String) {
+
+    val localizedTitle = movie?.title?.get(language) ?: movie?.title?.get("es") ?: ""
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .wrapContentHeight() // adapta la altura automáticamente al tamaño de la imagen
+            .wrapContentHeight()
     ) {
-        // Imagen de la película (se ve entera y ocupa todo el ancho)
+
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
                 .data(movie?.imageUrl ?: "")
                 .crossfade(true)
                 .build(),
-            contentDescription = movie?.title ?: "Película destacada",
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.TopCenter),
-            contentScale = ContentScale.FillWidth // ⚡ asegura que ocupe todo el ancho sin recortar alto
+            contentDescription = localizedTitle,
+            modifier = Modifier.fillMaxWidth(),
+            contentScale = ContentScale.FillWidth
         )
 
-        // Degradado inferior que fusiona con el fondo de la pantalla
         Box(
             modifier = Modifier
                 .matchParentSize()
                 .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(
+                    Brush.verticalGradient(
+                        listOf(
                             Color.Transparent,
                             MaterialTheme.colorScheme.background.copy(alpha = 0.9f)
                         ),
-                        startY = 600f // cuanto más grande, más suave será el fade
+                        startY = 600f
                     )
                 )
         )
 
-        // Logo en la esquina superior derecha
         Icon(
             painter = painterResource(id = R.drawable.ic_clapper_placeholder),
-            contentDescription = "Logo",
+            contentDescription = stringResource(R.string.logo_desc),
             tint = MaterialTheme.colorScheme.primary,
             modifier = Modifier
                 .align(Alignment.TopEnd)
@@ -108,65 +178,73 @@ fun FeaturedMovieSection(movie: Movie?, navController: NavController) {
                 .size(32.dp)
         )
 
-        // Botón de detalles centrado en la parte baja de la imagen
         Button(
-            onClick = { movie?.id?.let { id ->
-                navController.navigate("movieDetail/$id")
-            }},
+            onClick = { movie?.id?.let { navController.navigate("movieDetail/$it") } },
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(bottom = 20.dp),
-            shape = RoundedCornerShape(20.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary
-            )
+            shape = RoundedCornerShape(20.dp)
         ) {
-            Text("Detalles", fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.home_featured_button), fontWeight = FontWeight.Bold)
         }
     }
 }
 
 
 @Composable
-fun Section(title: String, movies: List<Movie>, navController: NavController) {
+fun Section(
+    title: String,
+    movies: List<Movie>,
+    language: String,
+    navController: NavController,
+    section: String
+) {
     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(title, color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.titleMedium)
             Text(
-                "Ver todo",
+                title,
+                color = MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.titleMedium
+            )
+
+            Text(
+                stringResource(R.string.see_all),
                 color = MaterialTheme.colorScheme.primary,
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.clickable {
-                    navController.navigate("movieList/$title")
+                    navController.navigate("movieList/$section")
                 }
             )
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
-
+        Spacer(Modifier.height(8.dp))
+        val shuffledMovies = remember(movies) { movies.shuffled() }
         LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            items(movies) { movie ->
+            items(shuffledMovies) { movie ->
+
+                val localizedTitle = movie.title[language] ?: movie.title["es"] ?: ""
+
                 AsyncImage(
                     model = movie.imageUrl,
-                    contentDescription = movie.title,
+                    contentDescription = localizedTitle,
                     modifier = Modifier
                         .width(120.dp)
                         .height(160.dp)
                         .clip(RoundedCornerShape(12.dp))
                         .clickable {
-                            println("➡️ Navegando a detalle de ${movie.title} con ID ${movie.id}")
                             navController.navigate("movieDetail/${movie.id}")
                         },
                     contentScale = ContentScale.Crop
                 )
             }
         }
-        Spacer(modifier = Modifier.height(24.dp))
+
+        Spacer(Modifier.height(24.dp))
     }
 }
 

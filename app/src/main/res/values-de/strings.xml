@@ -1,0 +1,172 @@
+<resources>
+    <string name="back">Zurück</string>
+
+    <string name="rating_title">Bewertung</string>
+    <string name="rate_button">Bewerten</string>
+
+    <string name="cast_title">Besetzung</string>
+
+    <string name="reviews_title">Rezensionen</string>
+    <string name="add_review_placeholder">Rezension hinzufügen</string>
+    <string name="send">Senden</string>
+
+    <string name="delete_review">Rezension löschen</string>
+    <string name="delete_review_confirm">Möchten Sie diese Rezension wirklich löschen?</string>
+    <string name="yes_delete">Ja, löschen</string>
+    <string name="cancel">Abbrechen</string>
+
+    <string name="rate_movie">%1$s bewerten</string>
+    <string name="save_rating">Bewertung speichern</string>
+
+    <string name="toggle_favorite">Zu Favoriten hinzufügen oder entfernen</string>
+
+    <string name="favorites_title">Lieblingsfilme</string>
+    <string name="favorites_empty">Du hast noch keine Lieblingsfilme.</string>
+    <string name="logo_desc">Logo</string>
+    <string name="favorite_button">Favorit</string>
+
+    <string name="home_featured_button">Details</string>
+    <string name="home_section_new">Empfohlene Neuerscheinungen</string>
+    <string name="home_section_trending">Im Trend</string>
+    <string name="home_section_recommended">Wir denken, es wird dir gefallen</string>
+    <string name="home_section_animation">Animationsfilme</string>
+    <string name="home_section_live_action">Realfilme</string>
+
+    <string name="see_all">Alle anzeigen</string>
+
+    <string name="edit_recommendations_title">Filme empfehlen (max. 3)</string>
+    <string name="save">Speichern</string>
+
+    <string name="logo">Logo</string>
+    <string name="edit">Bearbeiten</string>
+    <string name="language">Sprache</string>
+    <string name="spanish">Spanisch</string>
+    <string name="english">Englisch</string>
+    <string name="french">Französisch</string>
+    <string name="german">Deutsch</string>
+    <string name="friends">Freunde</string>
+    <string name="search">Suchen</string>
+    <string name="search_friends">Freunde suchen</string>
+    <string name="requests">Anfragen</string>
+    <string name="recommendations">Empfehlungen</string>
+    <string name="no_recommendations">Du hast noch keine Filme empfohlen.</string>
+    <string name="reviews">Bewertungen</string>
+    <string name="logout">Abmelden</string>
+    <string name="logout_confirm">Möchtest du dich wirklich abmelden?</string>
+    <string name="yes_logout">Ja, abmelden</string>
+    <string name="delete">Löschen</string>
+    <string name="delete_friend">Entferne %1$s</string>
+    <string name="delete_friend_confirm">Möchtest du diesen Freund wirklich entfernen?</string>
+
+    <string name="search_screen_title">Suche</string>
+    <string name="search_placeholder">Film suchen...</string>
+    <string name="no_results">Keine Ergebnisse</string>
+    <string name="select_category">Wähle eine Kategorie</string>
+    <string name="select_type">Wähle den Filmtyp</string>
+    <string name="select_genre">Wähle das Genre, das du suchst</string>
+    <string name="show_more">Mehr anzeigen</string>
+    <string name="show_less">Weniger anzeigen</string>
+    <string name="results">Ergebnisse</string>
+    <string name="view_all">Alle anzeigen</string>
+    <string name="results_will_appear">Hier werden die Ergebnisse angezeigt</string>
+    <string name="no_valid_results">Keine gültigen Ergebnisse</string>
+
+    <string name="cat_new_releases">Neuerscheinungen</string>
+    <string name="cat_trending">Im Trend</string>
+    <string name="cat_recommended">Für dich empfohlen</string>
+
+    <string name="type_animated">Animation</string>
+    <string name="type_live_action">Live action</string>
+
+    <string name="gen_action">Action</string>
+    <string name="gen_drama">Drama</string>
+    <string name="gen_adventure">Abenteuer</string>
+    <string name="gen_comedy">Komödie</string>
+    <string name="gen_fantasy">Fantasie</string>
+    <string name="gen_horror">Horror</string>
+    <string name="gen_historical">Historisch</string>
+    <string name="gen_superheroes">Superhelden</string>
+    <string name="gen_biographical">Biografisch</string>
+    <string name="gen_family">Familie</string>
+    <string name="gen_crime">Krimi</string>
+    <string name="gen_sci_fi">Science-Fiction</string>
+    <string name="gen_psychological">Psychologisch</string>
+    <string name="gen_mystery">Mystery</string>
+    <string name="gen_musical">Musical</string>
+    <string name="gen_children">Kinder</string>
+    <string name="gen_thriller">Thriller</string>
+    <string name="gen_supernatural">Übernatürlich</string>
+    <string name="gen_sports">Sport</string>
+    <string name="gen_social">Sozial</string>
+    <string name="gen_post_apoc">Postapokalyptisch</string>
+    <string name="gen_romance">Romanze</string>
+    <string name="gen_spy">Spionage</string>
+
+    <string name="friend_requests_title">Freundschaftsanfragen</string>
+    <string name="accept">Annehmen</string>
+    <string name="reject">Ablehnen</string>
+    <string name="no_requests">Du hast keine Freundschaftsanfragen.</string>
+    <string name="loading">Wird geladen…</string>
+
+    <string name="search_users">Benutzer suchen...</string>
+    <string name="add_friend">Hinzufügen</string>
+    <string name="request_sent">Anfrage gesendet</string>
+    <string name="friends_status">Freunde</string>
+
+    <string name="results_will_show_here">Hier werden die Ergebnisse angezeigt</string>
+    <string name="no_users_found">Kein Benutzer passt zu diesem Namen</string>
+
+    <string name="edit_profile_title">Profil bearbeiten</string>
+
+    <string name="change_profile_photo">Profilbild ändern</string>
+    <string name="choose_gallery">Aus Galerie wählen</string>
+    <string name="take_photo">Foto aufnehmen</string>
+
+    <string name="personal_info">Persönliche Informationen</string>
+    <string name="name">Name</string>
+    <string name="username">Benutzername</string>
+
+    <string name="saving">Wird gespeichert...</string>
+    <string name="save_changes">Änderungen speichern</string>
+
+    <string name="friend_profile_back">Zurück</string>
+
+    <string name="send_request">Freundschaftsanfrage senden</string>
+
+    <string name="friends_title">Freunde (%1$d)</string>
+    <string name="friends_card_title">Freunde</string>
+    <string name="friends_hidden">Füge die Person als Freund hinzu, um zu sehen, wem sie folgt.</string>
+
+    <string name="recommendations_title">Empfehlungen</string>
+    <string name="profile_photo">Profilbild</string>
+
+    <string name="years_old">%1$d Jahre alt</string>
+    <string name="no_bio">Keine Biografie verfügbar.</string>
+    <string name="movies_title">Filme</string>
+
+    <string name="auth_title_sign_in">Anmelden</string>
+    <string name="auth_title_sign_up">Konto erstellen</string>
+
+    <string name="auth_full_name">Vollständiger Name</string>
+    <string name="auth_username">Benutzername</string>
+    <string name="auth_email">E-Mail-Adresse</string>
+    <string name="auth_password">Passwort</string>
+
+    <string name="auth_sign_in">Anmelden</string>
+    <string name="auth_sign_up">Registrieren</string>
+
+    <string name="auth_toggle_to_signup">Du hast noch kein Konto? Registriere dich</string>
+    <string name="auth_toggle_to_signin">Du hast bereits ein Konto? Melde dich an</string>
+
+    <string name="auth_forgot_password">Passwort vergessen?</string>
+    <string name="auth_reset_email_sent">Eine E-Mail zum Zurücksetzen deines Passworts wurde gesendet.</string>
+    <string name="auth_reset_email_error">Die Wiederherstellungs-E-Mail konnte nicht gesendet werden.</string>
+
+    <string name="auth_languages">Sprache</string>
+
+    <string name="auth_verification_email_sent">
+    Wir haben Ihnen eine Bestätigungs-E-Mail gesendet. Bitte überprüfen Sie Ihren Posteingang.
+    </string>
+
+
+</resources>

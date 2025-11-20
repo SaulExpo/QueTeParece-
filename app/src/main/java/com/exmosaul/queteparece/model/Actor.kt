@@ -5,7 +5,7 @@ data class Actor(
     val name: String = "",
     val surname: String = "",
     val age: Int = 0,
-    val bio: String = "",
+    val bio: Map<String, String> = emptyMap(),
     val imageUrl: String = "",
     val movies: List<String> = emptyList(),
     ){

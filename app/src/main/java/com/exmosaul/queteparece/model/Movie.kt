@@ -1,11 +1,10 @@
 package com.exmosaul.queteparece.data.model
 
-import com.exmosaul.queteparece.data.model.Actor
 
 data class Movie(
     val id: String = "",
-    val title: String = "",
-    val description: String = "",
+    val title: Map<String, String> = emptyMap(),
+    val description: Map<String, String> = emptyMap(),
     val imageUrl: String = "",
     val category: String = "",
     val isFeatured: Boolean = false,
