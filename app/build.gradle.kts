@@ -15,7 +15,6 @@ if (localPropsFile.exists()) {
 }
 
 val openAIKey = localProps.getProperty("OPENAI_API_KEY") ?: ""
-println("🔥 OPENAI KEY: $openAIKey")
 
 android {
     namespace = "com.exmosaul.queteparece"

@@ -35,7 +35,7 @@
 
     <string name="see_all">Ver todo</string>
 
-    <string name="edit_recommendations_title">Recomendar películas (3 máx)</string>
+    <string name="edit_recommendations_title">Recomendar películas (4 máx)</string>
     <string name="save">Guardar</string>
 
     <string name="logo">Logo</string>
@@ -168,4 +168,7 @@
     <string name="auth_verification_email_sent">
     Te hemos enviado un correo de verificación. Revisa tu bandeja de entrada.
     </string>
+
+    <string name="watch_trailer">Ver tráiler</string>
+    <string name="where_to_watch">Dónde ver</string>
 </resources>

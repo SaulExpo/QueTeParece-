@@ -12,6 +12,8 @@ data class Movie(
     val type : String = "",
     val actors: List<String> = emptyList(),
     val rating: Int = 0,
+    val platforms: List<String> = emptyList(),
+    val trailer: String = ""
 )
 
 

@@ -34,7 +34,7 @@
 
     <string name="see_all">Voir tout</string>
 
-    <string name="edit_recommendations_title">Recommander des films (3 max)</string>
+    <string name="edit_recommendations_title">Recommander des films (4 max)</string>
     <string name="save">Enregistrer</string>
 
     <string name="logo">Logo</string>
@@ -168,4 +168,6 @@
     Nous vous avons envoyé un e-mail de vérification. Veuillez vérifier votre boîte de réception.
     </string>
 
+    <string name="watch_trailer">Voir la bande-annonce</string>
+    <string name="where_to_watch">Où regarder</string>
 </resources>

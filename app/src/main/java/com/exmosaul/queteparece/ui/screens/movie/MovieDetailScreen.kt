@@ -1,6 +1,12 @@
 package com.exmosaul.queteparece.ui.screens.detail
 
 import LanguageManager
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
+import android.content.Intent
+import android.net.Uri
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -108,10 +114,13 @@ fun MovieDetailScreen(
             CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
         }
     } else {
+        val localizedTitle = movie?.title[language] ?: movie?.title["es"] ?: ""
+        val localizedDescription = movie?.description[language] ?: movie?.description["es"] ?: ""
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text("") },
+
+                    title = { Text(localizedTitle) },
                     navigationIcon = {
                         IconButton(onClick = { navController.popBackStack() }) {
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
@@ -131,8 +140,6 @@ fun MovieDetailScreen(
 
                 val movie = uiState.movie
                 movie?.let {
-                    val localizedTitle = it.title[language] ?: it.title["es"] ?: ""
-                    val localizedDescription = it.description[language] ?: it.description["es"] ?: ""
                     Column(
                         modifier = Modifier
                             .padding(innerPadding)
@@ -178,6 +185,28 @@ fun MovieDetailScreen(
                                 )
                             }
                         }
+
+                        val context = LocalContext.current
+
+                        movie.trailer?.let { trailerUrl ->
+                            Button(
+                                onClick = {
+                                    val url = trailerUrl
+
+                                    try {
+                                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply {
+                                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                        }
+                                        context.startActivity(intent)
+                                    } catch (e: Exception) {
+                                        Toast.makeText(context, "No se pudo abrir el trailer", Toast.LENGTH_SHORT).show()
+                                    }
+                                },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(stringResource(R.string.watch_trailer))
+                            }
+                        }
                         Column {
                             Text(
                                 stringResource(R.string.rating_title),
@@ -200,52 +229,102 @@ fun MovieDetailScreen(
                                 onSubmit = { newRating ->
                                     viewModel.submitUserRating(movie.id, newRating)
                                     showRatingSheet = false
-                                }
+                                },
+                                title = localizedTitle
                             )
                         }
+                        movie.platforms?.let { platforms ->
+                            if (platforms.isNotEmpty()) {
+                                Spacer(Modifier.height(24.dp))
 
-                        Spacer(Modifier.height(24.dp))
-                        Text(
-                            stringResource(R.string.cast_title),
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.primary
-                        )
+                                Text(
+                                    stringResource(R.string.where_to_watch),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
 
-                        LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                            items(uiState.actors) { actor ->
-                                Column(horizontalAlignment = Alignment.CenterHorizontally,
-                                    modifier = Modifier
-                                        .clickable { navController.navigate("actorDetail/${actor.id}") }
+                                Spacer(Modifier.height(12.dp))
+
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(90.dp)
-                                            .clip(RoundedCornerShape(12.dp))
-                                    ) {
-                                        AsyncImage(
-                                            model = ImageRequest.Builder(LocalContext.current)
-                                                .data(actor.imageUrl)
-                                                .crossfade(true)
-                                                .build(),
-                                            contentDescription = actor.fullName,
-                                            contentScale = ContentScale.Crop,
-                                            modifier = Modifier.matchParentSize(),
-                                            placeholder = painterResource(R.drawable.profile),
-                                            error = painterResource(R.drawable.profile)
-                                        )
+                                    platforms.forEach { platform ->
+                                        val logo = when (platform.lowercase()) {
+                                            "netflix" -> R.drawable.netflix
+                                            "prime" -> R.drawable.prime
+                                            "hbo" -> R.drawable.hbo
+                                            "disney" -> R.drawable.disney
+                                            "movistar" -> R.drawable.movistar
+                                            "apple" -> R.drawable.apple_tv
+                                            else -> null
+                                        }
+
+                                        Box(
+                                            modifier = Modifier
+                                                .size(40.dp)
+                                                .clip(RoundedCornerShape(8.dp))
+                                                .background(Color.Black.copy(alpha = 0.1f)),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            if (logo != null) {
+                                                AsyncImage(
+                                                    model = logo,
+                                                    contentDescription = platform,
+                                                    modifier = Modifier
+                                                        .fillMaxSize(),
+                                                    contentScale = ContentScale.Crop
+                                                )
+                                            }
+                                        }
                                     }
-
-                                    Spacer(Modifier.height(6.dp))
-
-                                    Text(
-                                        actor.fullName,
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.primary
-                                    )
                                 }
                             }
                         }
+                        Spacer(Modifier.height(24.dp))
+                        if (movie.type.lowercase() != "animada") {
+                            Text(
+                                stringResource(R.string.cast_title),
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.primary
+                            )
 
+                            LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                items(uiState.actors) { actor ->
+                                    Column(
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        modifier = Modifier
+                                            .clickable { navController.navigate("actorDetail/${actor.id}") }
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(90.dp)
+                                                .clip(RoundedCornerShape(12.dp))
+                                        ) {
+                                            AsyncImage(
+                                                model = ImageRequest.Builder(LocalContext.current)
+                                                    .data(actor.imageUrl)
+                                                    .crossfade(true)
+                                                    .build(),
+                                                contentDescription = actor.fullName,
+                                                contentScale = ContentScale.Crop,
+                                                modifier = Modifier.matchParentSize(),
+                                                placeholder = painterResource(R.drawable.profile),
+                                                error = painterResource(R.drawable.profile)
+                                            )
+                                        }
+
+                                        Spacer(Modifier.height(6.dp))
+
+                                        Text(
+                                            actor.fullName,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.primary
+                                        )
+                                    }
+                                }
+                            }
+                        }
                         Spacer(Modifier.height(24.dp))
                         Text(
                             stringResource(R.string.reviews_title),
@@ -431,7 +510,8 @@ fun RatingSheet(
     movie: Movie,
     currentUserRating: Int?,
     onDismiss: () -> Unit,
-    onSubmit: (Int) -> Unit
+    onSubmit: (Int) -> Unit,
+    title: String
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var selectedRating by remember { mutableStateOf(currentUserRating ?: 0) }
@@ -443,7 +523,7 @@ fun RatingSheet(
     ) {
 
         Text(
-            "Valorar ${movie.title}",
+            stringResource(R.string.rate_button) + " " + title,
             style = MaterialTheme.typography.titleLarge,
             modifier = Modifier.padding(16.dp)
         )
@@ -512,4 +592,15 @@ fun ReviewVoteButton(
             color = MaterialTheme.colorScheme.onBackground
         )
     }
+}
+
+
+fun Context.findActivity(): Activity? {
+    var context = this
+    while (context is ContextWrapper) {
+        if (context is Activity) return context
+        if (context.baseContext === context) break
+        context = context.baseContext
+    }
+    return null
 }

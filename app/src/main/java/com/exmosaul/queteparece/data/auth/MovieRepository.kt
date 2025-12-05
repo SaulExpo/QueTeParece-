@@ -77,6 +77,8 @@ fun documentToMovie(doc: Map<String, Any?>, id: String): Movie {
         genres = (doc["genres"] as? List<*>)?.filterIsInstance<String>() ?: emptyList(),
         type = doc["type"] as? String ?: "",
         actors = (doc["actors"] as? List<*>)?.filterIsInstance<String>() ?: emptyList(),
-        rating = (doc["rating"] as? Number)?.toInt() ?: 0
+        rating = (doc["rating"] as? Number)?.toInt() ?: 0,
+        trailer = doc["trailer"] as? String ?: "",
+        platforms = (doc["platforms"] as? List<*>)?.filterIsInstance<String>() ?: emptyList(),
     )
 }

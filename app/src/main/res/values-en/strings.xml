@@ -34,7 +34,7 @@
 
     <string name="see_all">See all</string>
 
-    <string name="edit_recommendations_title">Recommend movies (3 max)</string>
+    <string name="edit_recommendations_title">Recommend movies (4 max)</string>
     <string name="save">Save</string>
 
 
@@ -169,5 +169,8 @@
     <string name="auth_verification_email_sent">
     We’ve sent you a verification email. Please check your inbox.
     </string>
+
+    <string name="watch_trailer">Watch trailer</string>
+    <string name="where_to_watch">Where to watch</string>
 
 </resources>

@@ -238,5 +238,3 @@ fun EditProfileScreen(navController: NavController) {
         }
     }
 }
-
-

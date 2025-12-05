@@ -72,7 +72,7 @@ fun EditRecommendationsScreen(navController: NavController) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { stringResource(R.string.edit_recommendations_title) },
+                title = { Text(stringResource(R.string.edit_recommendations_title)) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
